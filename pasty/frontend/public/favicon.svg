@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#9333ea"/>
+    </linearGradient>
+    <linearGradient id="logoGradHover" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="96" fill="url(#logoGrad)"/>
+  <!-- Letter P -->
+  <path d="M180 400V112h96c56 0 100 16 132 48s48 74 48 120c0 50-16 90-48 120s-76 48-132 48h-56v-48h56c34 0 62-10 84-30s32-46 32-82-10-60-32-80-50-30-84-30h-48v192h-48z" fill="white"/>
+</svg>
