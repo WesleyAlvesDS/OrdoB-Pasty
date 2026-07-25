@@ -244,6 +244,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
         </div>
 
         {/* ─── Destinations preview ──────────────────────── */}
+        <h2 className="sr-only">Destinos disponíveis</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {destinations.map((dest) => (
             <div
@@ -335,6 +336,18 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
           </div>
         )}
       </main>
+
+      {/* ─── Empty state for unauthenticated users ───── */}
+      {!isAuthenticated && !showForm && (
+        <div className="text-center py-8 animate-fade-in">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Comece agora
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+            Clique em "Começar a usar" acima para colar seu primeiro texto e escolher onde salvar.
+          </p>
+        </div>
+      )}
 
       {/* ─── Logout confirmation dialog ─────────────────── */}
       <LogoutDialog

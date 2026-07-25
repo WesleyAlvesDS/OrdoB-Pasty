@@ -21,6 +21,8 @@ export function DestinationSelector({ selected, onChange }: DestinationSelectorP
             key={dest.id}
             type="button"
             onClick={() => onChange(dest.id)}
+            aria-label={`Salvar em ${dest.label}`}
+            aria-pressed={isActive}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all duration-300 ease-out cursor-pointer ${
               isActive
                 ? 'border-violet-500 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 shadow-md shadow-violet-200/50 dark:shadow-violet-950/50 scale-[1.02]'
