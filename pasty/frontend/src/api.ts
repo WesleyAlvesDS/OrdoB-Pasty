@@ -9,17 +9,62 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 15000,
 })
+
+// ─── Token helpers ───────────────────────────────────────────
+
+const TOKEN_KEY = 'utc_token'
+const USER_KEY = 'utc_user'
+
+export function getStoredToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY)
+}
+
+export function clearStoredAuth(): void {
+  localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(USER_KEY)
+}
+
+// ─── Response interceptor: handle 401 globally ──────────────
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired — clear auth so UI can react
+      clearStoredAuth()
+      // Dispatch a custom event that AuthGuard/useAuth can listen to
+      window.dispatchEvent(new CustomEvent('auth:expired'))
+    }
+    return Promise.reject(error)
+  },
+)
 
 /** Create an axios instance with Bearer token */
 function authedApi(token: string) {
-  return axios.create({
+  const instance = axios.create({
     baseURL: API_BASE,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
+    timeout: 15000,
   })
+
+  // Also add 401 interceptor to authed instance
+  instance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        clearStoredAuth()
+        window.dispatchEvent(new CustomEvent('auth:expired'))
+      }
+      return Promise.reject(error)
+    },
+  )
+
+  return instance
 }
 
 /** Get the Google OAuth URL */
@@ -36,9 +81,7 @@ export async function exchangeCode(code: string): Promise<AuthResponse> {
 
 /** Get current user info */
 export async function getMe(token: string): Promise<AuthResponse['user']> {
-  const { data } = await authedApi(token).get<{ user: AuthResponse['user'] }>(
-    '/auth/me',
-  )
+  const { data } = await authedApi(token).get<{ user: AuthResponse['user'] }>('/auth/me')
   return data.user
 }
 

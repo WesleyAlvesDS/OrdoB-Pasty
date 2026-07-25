@@ -6,6 +6,8 @@ import { useSaveForm } from '../hooks/useSaveForm'
 import { Header } from '../components/Header'
 import { SEO } from '../components/SEO'
 import { HistorySkeleton } from '../components/Skeleton'
+import { LogoutDialog } from '../components/AuthGuard'
+import { useToastActions } from '../components/Toast'
 import { Footer } from '../components/Footer'
 
 // Lazy import components that are not needed immediately
@@ -63,9 +65,13 @@ interface HomePageProps {
 
 export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }: HomePageProps) {
   const navigate = useNavigate()
+  const toast = useToastActions()
   const [historyKey, setHistoryKey] = useState(0)
   const [pendingResult, setPendingResult] = useState<PendingResult | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [logingOut, setLogingOut] = useState(false)
+  const [authLoading, setAuthLoading] = useState(false)
 
   const {
     title, text, destination, saving, savedClip, isDuplicate, saveError, canSave,
@@ -82,13 +88,18 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
     if (error) {
       console.error('OAuth error:', error)
       window.history.replaceState({}, '', '/')
+      toast.error('Autenticação falhou', 'Não foi possível fazer login com o Google. Tente novamente.')
       return
     }
 
     if (code) {
+      setAuthLoading(true)
       window.history.replaceState({}, '', '/')
+
       onCallback(code)
         .then(async () => {
+          toast.success('Login realizado!', 'Bem-vindo ao Pasty.')
+
           const raw = sessionStorage.getItem(PENDING_KEY)
           if (!raw) return
 
@@ -107,18 +118,25 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
               savedToken,
             )
             setPendingResult({ clip: res.clip, duplicate: res.duplicate })
+            if (!res.duplicate) {
+              toast.success('Texto salvo!', 'Seu texto pendente foi salvo com sucesso.')
+            } else {
+              toast.info('Texto já existe', 'Este texto já foi salvo anteriormente.')
+            }
           } catch (err: unknown) {
             const axiosError = err as { response?: { data?: { error?: string } }; message?: string }
             setPendingResult({
               error: axiosError?.response?.data?.error ?? (err instanceof Error ? err.message : 'Erro ao salvar texto pendente'),
             })
+            toast.error('Erro ao salvar', 'Não foi possível salvar o texto pendente.')
           }
         })
-        .catch((err: Error) => {
-          console.error('Auth callback failed:', err)
+        .catch(() => {
+          toast.error('Erro na autenticação', 'Falha ao processar o login.')
         })
+        .finally(() => setAuthLoading(false))
     }
-  }, [onCallback])
+  }, [onCallback, toast])
 
   // ─── Handlers ───────────────────────────────────────────────
 
@@ -128,8 +146,9 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
       window.location.href = authUrl
     } catch (err) {
       console.error('Failed to get auth URL:', err)
+      toast.error('Erro ao conectar', 'Não foi possível iniciar o login com o Google.')
     }
-  }, [])
+  }, [toast])
 
   const handleSaveClick = useCallback(() => {
     if (!isAuthenticated) {
@@ -141,10 +160,20 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
     handleSave()
   }, [isAuthenticated, title, text, destination, handleLogin, handleSave])
 
-  const handleLogout = useCallback(() => {
-    onLogout()
-    navigate('/', { replace: true })
-  }, [onLogout, navigate])
+  const handleLogoutClick = useCallback(() => {
+    setShowLogoutConfirm(true)
+  }, [])
+
+  const confirmLogout = useCallback(() => {
+    setLogingOut(true)
+    setTimeout(() => {
+      onLogout()
+      setShowLogoutConfirm(false)
+      setLogingOut(false)
+      navigate('/', { replace: true })
+      toast.info('Até logo!', 'Você saiu da sua conta.')
+    }, 300)
+  }, [onLogout, navigate, toast])
 
   const dismissAll = useCallback(() => {
     setPendingResult(null)
@@ -165,9 +194,26 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
         canonical="https://pasty.ordob.com/"
       />
 
-      <Header user={isAuthenticated ? user : null} onLogout={handleLogout} />
+      <Header
+        user={isAuthenticated ? user : null}
+        onLogout={handleLogoutClick}
+      />
 
       <main id="main-content" className="flex-1 w-full max-w-2xl mx-auto px-4 py-8 space-y-6">
+        {/* ─── Auth loading overlay ──────────────────────────── */}
+        {authLoading && (
+          <div className="fixed inset-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-center justify-center" role="status" aria-label="Autenticando">
+            <div className="flex flex-col items-center gap-3 p-8 rounded-2xl bg-white dark:bg-gray-900 shadow-xl border border-gray-200 dark:border-gray-800">
+              <svg className="animate-spin h-8 w-8 text-violet-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Autenticando...</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Conectando com Google</p>
+            </div>
+          </div>
+        )}
+
         {/* ─── Hero branding ──────────────────────────────── */}
         <div className="text-center animate-fade-in">
           <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 text-xs font-medium border border-violet-200 dark:border-violet-800">
@@ -251,7 +297,14 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
               <TextBox text={text} onTextChange={setText} />
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                <DestinationSelector selected={destination} onChange={setDestination} />
+                <div className="flex items-center gap-2">
+                  <DestinationSelector selected={destination} onChange={setDestination} />
+                  {text && (
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 hidden sm:block tabular-nums">
+                      Ctrl+Enter
+                    </span>
+                  )}
+                </div>
                 <SaveButton
                   onClick={handleSaveClick}
                   loading={saving}
@@ -259,6 +312,13 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
                   isAuthenticated={isAuthenticated}
                 />
               </div>
+
+              {/* Auto-save status */}
+              {text && !savedClip && (
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 text-right tabular-nums">
+                  Rascunho salvo automaticamente
+                </p>
+              )}
             </Suspense>
           )}
         </div>
@@ -275,6 +335,14 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
           </div>
         )}
       </main>
+
+      {/* ─── Logout confirmation dialog ─────────────────── */}
+      <LogoutDialog
+        open={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={confirmLogout}
+        loading={logingOut}
+      />
 
       <Footer />
     </div>

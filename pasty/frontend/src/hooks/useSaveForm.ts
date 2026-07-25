@@ -1,82 +1,216 @@
-import { useState, useCallback } from 'react'
-import type { Destination, Clip } from '../types'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { saveText } from '../api'
+import type { Clip } from '../types'
 
-export function useSaveForm(token: string | null, onSaved?: () => void) {
-  const [title, setTitle] = useState('')
-  const [text, setText] = useState('')
-  const [destination, setDestination] = useState<Destination>('gmail')
-  const [saving, setSaving] = useState(false)
-  const [savedClip, setSavedClip] = useState<Clip | null>(null)
-  const [isDuplicate, setIsDuplicate] = useState(false)
-  const [saveError, setSaveError] = useState<string | null>(null)
+const DRAFT_KEY = 'pasty_draft'
+const AUTOSAVE_DELAY = 2000
 
-  const handleSave = useCallback(async () => {
-    if (!token || !text.trim()) return
+interface Draft {
+  title: string
+  text: string
+  destination: string
+  savedAt: number
+}
 
-    setSaving(true)
-    setSaveError(null)
-    setSavedClip(null)
+interface SaveFormState {
+  title: string
+  text: string
+  destination: string
+  saving: boolean
+  savedClip: Clip | null
+  isDuplicate: boolean
+  saveError: string | null
+}
+
+export function useSaveForm(
+  token: string | null,
+  onSaved?: () => void,
+) {
+  const [state, setState] = useState<SaveFormState>({
+    title: '',
+    text: '',
+    destination: 'docs',
+    saving: false,
+    savedClip: null,
+    isDuplicate: false,
+    saveError: null,
+  })
+
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const initialized = useRef(false)
+
+  // ─── Restore draft on mount ──────────────────────────────
+
+  useEffect(() => {
+    if (initialized.current) return
+    initialized.current = true
 
     try {
-      const response = await saveText(text.trim(), destination, title.trim() || 'Sem título', token)
-      setSavedClip(response.clip)
-      setIsDuplicate(response.duplicate)
+      const raw = localStorage.getItem(DRAFT_KEY)
+      if (!raw) return
 
-      if (!response.duplicate) {
-        setText('')
+      const draft: Draft = JSON.parse(raw)
+      const elapsed = Date.now() - draft.savedAt
+
+      // Only restore if saved within the last 24 hours and has content
+      if (elapsed < 24 * 60 * 60 * 1000 && draft.text?.trim()) {
+        setState((prev) => ({
+          ...prev,
+          title: draft.title ?? '',
+          text: draft.text,
+          destination: draft.destination ?? 'docs',
+        }))
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, [])
+
+  // ─── Auto-save draft ─────────────────────────────────────
+
+  useEffect(() => {
+    if (!state.text?.trim() && !state.title?.trim()) return
+
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
+
+    autoSaveTimer.current = setTimeout(() => {
+      try {
+        const draft: Draft = {
+          title: state.title,
+          text: state.text,
+          destination: state.destination,
+          savedAt: Date.now(),
+        }
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+      } catch {
+        // localStorage might be full
+      }
+    }, AUTOSAVE_DELAY)
+
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
+    }
+  }, [state.title, state.text, state.destination])
+
+  // ─── Clear draft on successful save ──────────────────────
+
+  const clearDraft = useCallback(() => {
+    localStorage.removeItem(DRAFT_KEY)
+  }, [])
+
+  // ─── Setters ─────────────────────────────────────────────────
+
+  const setTitle = useCallback((title: string) => {
+    setState((prev) => ({ ...prev, title }))
+  }, [])
+
+  const setText = useCallback((text: string) => {
+    setState((prev) => ({ ...prev, text }))
+  }, [])
+
+  const setDestination = useCallback((destination: string) => {
+    setState((prev) => ({ ...prev, destination }))
+  }, [])
+
+  // ─── Handle Save ─────────────────────────────────────────
+
+  const handleSave = useCallback(async () => {
+    const currentToken = token ?? localStorage.getItem('utc_token')
+    if (!currentToken) {
+      setState((prev) => ({ ...prev, saveError: 'Você precisa estar logado para salvar.' }))
+      return
+    }
+
+    const trimmedText = state.text.trim()
+    if (!trimmedText) return
+
+    setState((prev) => ({ ...prev, saving: true, saveError: null, savedClip: null, isDuplicate: false }))
+
+    try {
+      const res = await saveText(
+        trimmedText,
+        state.destination,
+        state.title.trim() || 'Sem título',
+        currentToken,
+      )
+
+      setState((prev) => ({
+        ...prev,
+        saving: false,
+        savedClip: res.clip,
+        isDuplicate: res.duplicate,
+        text: res.duplicate ? prev.text : '',
+        title: res.duplicate ? prev.title : '',
+      }))
+
+      if (!res.duplicate) {
+        clearDraft()
         onSaved?.()
       }
     } catch (err: unknown) {
-      let errorMsg = 'Erro ao salvar. Tente novamente.'
+      let message = 'Erro ao salvar texto. Tente novamente.'
 
-      // Tenta extrair a mensagem de erro real do backend (via Axios)
-      const axiosError = err as { response?: { data?: { error?: string } }; message?: string }
-      const backendError = axiosError?.response?.data?.error
+      if (err instanceof Error) {
+        const axiosError = err as { response?: { data?: { error?: string }; status?: number }; message?: string }
+        const serverMsg = axiosError?.response?.data?.error
 
-      if (backendError && typeof backendError === 'string') {
-        // Mostra o erro real do backend (ex: Google API error, token expired, etc.)
-        errorMsg = backendError
-      } else if (err instanceof Error) {
-        if (err.message === 'Network Error' || err.message.includes('ERR_CONNECTION')) {
-          errorMsg = 'Servidor offline. Certifique-se de que o backend está rodando (cd backend && npm run dev).'
-        } else if (err.message.includes('502')) {
-          errorMsg = 'Erro no servidor ao processar sua solicitação. O backend retornou uma resposta inválida.'
-        } else if (err.message.includes('429') || err.message.includes('rate limit')) {
-          errorMsg = 'Você excedeu o limite de requisições às APIs do Google. Aguarde alguns minutos e tente novamente.'
-        } else if (err.message.includes('401') || err.message.includes('token') || err.message.includes('authenticate')) {
-          errorMsg = 'Sessão expirada. Faça login novamente.'
-        } else {
-          errorMsg = err.message
+        if (serverMsg) {
+          message = serverMsg
+        } else if (axiosError?.response?.status === 401) {
+          message = 'Sessão expirada. Faça login novamente.'
+        } else if (axiosError?.response?.status === 429) {
+          message = 'Muitas requisições. Aguarde um momento e tente novamente.'
+        } else if (err.message?.includes('Network Error') || err.message?.includes('ERR_NETWORK')) {
+          message = 'Servidor offline. Verifique sua conexão e tente novamente.'
+        } else if (err.message?.includes('502')) {
+          message = 'Serviço temporariamente indisponível. Tente novamente em instantes.'
+        } else if (err.message) {
+          message = err.message
         }
       }
 
-      setSaveError(errorMsg)
-    } finally {
-      setSaving(false)
+      setState((prev) => ({ ...prev, saving: false, saveError: message }))
     }
-  }, [token, destination, text, onSaved])
+  }, [token, state.text, state.title, state.destination, clearDraft, onSaved])
+
+  // ─── Dismiss message ─────────────────────────────────────
 
   const dismissMessage = useCallback(() => {
-    setSavedClip(null)
-    setSaveError(null)
+    setState((prev) => ({ ...prev, savedClip: null, saveError: null, isDuplicate: false }))
   }, [])
 
-  const canSave = text.trim().length > 0
+  // ─── Derived ─────────────────────────────────────────────
+
+  const canSave = !!state.text.trim() && !state.saving && !!token
+
+  // ─── Keyboard shortcut: Ctrl+Enter to save ───────────────
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        if (canSave) {
+          e.preventDefault()
+          handleSave()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [handleSave, canSave]) // eslint-disable-line react-hooks/exhaustive-deps
+  const autoSaveTime = state.text?.trim()
+    ? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    : null
 
   return {
-    title,
-    text,
-    destination,
-    saving,
-    savedClip,
-    isDuplicate,
-    saveError,
-    canSave,
+    ...state,
     setTitle,
     setText,
     setDestination,
     handleSave,
     dismissMessage,
+    canSave,
+    hasDraft: !!localStorage.getItem(DRAFT_KEY),
+    autoSaveTime,
   }
 }

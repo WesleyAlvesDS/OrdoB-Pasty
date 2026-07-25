@@ -1,11 +1,14 @@
-import { Suspense, lazy } from 'react'
+import { useEffect, Suspense, lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ScrollToTop } from './components/ScrollToTop'
 import { GoogleAnalytics } from './components/GoogleAnalytics'
+import { ToastProvider } from './components/Toast'
+import { SessionStatus } from './components/AuthGuard'
 import { PageHeroSkeleton } from './components/Skeleton'
 import { SEO, orgJsonLd } from './components/SEO'
+import { clearStoredAuth } from './api'
 
 // ─── Lazy loaded pages ──────────────────────────────────────
 
@@ -36,6 +39,17 @@ function PageLoading() {
   )
 }
 
+// ─── Auth expired listener ──────────────────────────────────
+
+function AuthExpiredListener({ onExpired }: { onExpired: () => void }) {
+  useEffect(() => {
+    const handler = () => onExpired()
+    window.addEventListener('auth:expired', handler)
+    return () => window.removeEventListener('auth:expired', handler)
+  }, [onExpired])
+  return null
+}
+
 // ─── App ────────────────────────────────────────────────────
 
 function App() {
@@ -55,90 +69,102 @@ function App() {
     )
   }
 
+  const handleLogout = () => {
+    logout()
+  }
+
   return (
     <ErrorBoundary>
-      <SEO
-        title="Pasty — Cole, salve e acesse de qualquer lugar"
-        description="Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail. Rápido, seguro e 100% grátis."
-        canonical="https://pasty.ordob.com/"
-        jsonLd={orgJsonLd}
-      />
-      <ScrollToTop />
-      <GoogleAnalytics />
+      <ToastProvider>
+        <SEO
+          title="Pasty — Cole, salve e acesse de qualquer lugar"
+          description="Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail. Rápido, seguro e 100% grátis."
+          canonical="https://pasty.ordob.com/"
+          jsonLd={orgJsonLd}
+        />
+        <ScrollToTop />
+        <GoogleAnalytics />
+        <SessionStatus
+          token={token}
+          isAuthenticated={isAuthenticated}
+          onLogout={handleLogout}
+        />
+        <AuthExpiredListener onExpired={clearStoredAuth} />
 
-      <Routes>
-        {/* Home = app principal (público + autenticado) */}
-        <Route
-          path="/"
-          element={
-            <Suspense fallback={<PageLoading />}>
-              <HomePage
-                isAuthenticated={isAuthenticated}
-                user={user}
-                token={token}
-                onCallback={handleCallback}
-                onLogout={logout}
-              />
-            </Suspense>
-          }
-        />
+        <Routes>
+          {/* Home = app principal (público + autenticado) */}
+          <Route
+            path="/"
+            element={
+              <Suspense fallback={<PageLoading />}>
+                <HomePage
+                  isAuthenticated={isAuthenticated}
+                  user={user}
+                  token={token}
+                  onCallback={handleCallback}
+                  onLogout={handleLogout}
+                />
+              </Suspense>
+            }
+          />
 
-        {/* Callback OAuth */}
-        <Route
-          path="/auth/callback"
-          element={
-            <Suspense fallback={<PageLoading />}>
-              <HomePage
-                isAuthenticated={isAuthenticated}
-                user={user}
-                token={token}
-                onCallback={handleCallback}
-                onLogout={logout}
-              />
-            </Suspense>
-          }
-        />
+          {/* Callback OAuth */}
+          <Route
+            path="/auth/callback"
+            element={
+              <Suspense fallback={<PageLoading />}>
+                <HomePage
+                  isAuthenticated={isAuthenticated}
+                  user={user}
+                  token={token}
+                  onCallback={handleCallback}
+                  onLogout={handleLogout}
+                />
+              </Suspense>
+            }
+          />
 
-        {/* Landing pages SEO */}
-        <Route
-          path="/send-text-to-pc"
-          element={
-            <Suspense fallback={<PageLoading />}>
-              <SendTextToPc />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/save-text-online"
-          element={
-            <Suspense fallback={<PageLoading />}>
-              <SaveTextOnline />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/privacy"
-          element={
-            <Suspense fallback={<PageLoading />}>
-              <PrivacyPolicy />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/terms"
-          element={
-            <Suspense fallback={<PageLoading />}>
-              <TermsOfService />
-            </Suspense>
-          }
-        />
+          {/* Landing pages SEO */}
+          <Route
+            path="/send-text-to-pc"
+            element={
+              <Suspense fallback={<PageLoading />}>
+                <SendTextToPc />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/save-text-online"
+            element={
+              <Suspense fallback={<PageLoading />}>
+                <SaveTextOnline />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <Suspense fallback={<PageLoading />}>
+                <PrivacyPolicy />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <Suspense fallback={<PageLoading />}>
+                <TermsOfService />
+              </Suspense>
+            }
+          />
 
-        {/* /app redireciona para / */}
-        <Route path="/app" element={<Navigate to="/" replace />} />
+          {/* /app redireciona para / */}
+          <Route path="/app" element={<Navigate to="/" replace />} />
 
-        {/* 404 → home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* 404 → home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </ToastProvider>
     </ErrorBoundary>
   )
 }
