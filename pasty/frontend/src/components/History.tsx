@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Clip } from '../types'
 import { getHistory } from '../api'
+import { CardSkeleton } from './Skeleton'
 
 interface HistoryProps {
   token: string
@@ -105,17 +106,16 @@ export function History({ token, refreshKey }: HistoryProps) {
   // ─── Render: Loading ────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 gap-3">
-        <svg
-          className="animate-spin h-6 w-6 text-violet-500"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        <p className="text-sm text-gray-400 dark:text-gray-500 animate-pulse">Carregando histórico...</p>
+      <div className="space-y-3" role="status" aria-label="Carregando histórico">
+        <HistoryFilters
+          search={search}
+          onSearchChange={handleSearchChange}
+          destination={destination}
+          onDestinationChange={setDestination}
+          hasFilters={hasFilters}
+          onClear={clearFilters}
+        />
+        <CardSkeleton count={5} />
       </div>
     )
   }
@@ -123,7 +123,12 @@ export function History({ token, refreshKey }: HistoryProps) {
   // ─── Render: Error ──────────────────────────────────────
   if (error) {
     return (
-      <div className="text-center py-8">
+      <div className="text-center py-8" role="alert">
+        <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center mx-auto mb-3">
+          <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
         <p className="text-sm text-red-500 mb-3">{error}</p>
         <button
           onClick={() => {

@@ -1,90 +1,69 @@
-// Pasty — Service Worker
-// Cache name with version for easy updates
-const CACHE = 'pasty-v1'
+// Service Worker for Pasty PWA
+// Cache strategy: Network First with fallback to cache
 
-// Assets to pre-cache on install
-const PRECACHE = [
+const CACHE_NAME = 'pasty-v1'
+const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icon-192.svg',
-  '/icon-512.svg',
-  '/favicon.svg',
   '/robots.txt',
   '/sitemap.xml',
 ]
 
-// Install: pre-cache core assets
+// Install: cache static assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => {
-      return cache.addAll(PRECACHE).catch(() => {
-        // Assets pré-cacheados parcialmente — aceitável para MVP
-      })
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(STATIC_ASSETS)
     }),
   )
-  // Activate immediately — don't wait for old SW to close
   self.skipWaiting()
 })
 
 // Activate: clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE)
-          .map((key) => caches.delete(key)),
-      ),
-    ),
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name)),
+      )
+    }),
   )
-  // Take control of all clients immediately
   self.clients.claim()
 })
 
-// Fetch: network first, fallback to cache for navigation
+// Fetch: network first, fallback to cache
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
+  // Skip non-GET requests
   if (event.request.method !== 'GET') return
 
-  // For navigation requests (HTML pages), try network first
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // Cache the response for offline
-          const clone = response.clone()
-          caches.open(CACHE).then((cache) => cache.put(event.request, clone))
-          return response
-        })
-        .catch(() => {
-          // Offline: serve cached index.html for SPA routing
-          return caches.match('/index.html')
-        }),
-    )
-    return
-  }
+  // Skip API calls (don't cache them)
+  if (event.request.url.includes('/api/')) return
 
-  // For static assets: cache-first strategy
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      // Return cached response if available
-      if (cached) return cached
-
-      // Otherwise fetch from network and cache the response
-      return fetch(event.request).then((response) => {
-        // Don't cache API calls or non-ok responses
-        if (
-          !response.ok ||
-          event.request.url.includes('/api/')
-        ) {
-          return response
+    fetch(event.request)
+      .then((response) => {
+        // Cache successful responses
+        if (response.status === 200) {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, clone)
+          })
         }
-
-        const clone = response.clone()
-        caches.open(CACHE).then((cache) => cache.put(event.request, clone))
         return response
       })
-    }),
+      .catch(() => {
+        // Offline: serve from cache
+        return caches.match(event.request).then((cached) => {
+          if (cached) return cached
+          // If it's a navigation request, serve the SPA shell
+          if (event.request.mode === 'navigate') {
+            return caches.match('/index.html')
+          }
+          return new Response('Offline', { status: 503 })
+        })
+      }),
   )
 })

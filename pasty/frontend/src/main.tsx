@@ -1,23 +1,32 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import App from './App'
 import './index.css'
-import App from './App.tsx'
 
-// ─── Register Service Worker for PWA ─────────────────────────
+// ─── PWA: Register Service Worker ───────────────────────────
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js')
-      .then(() => console.log('📱 Pasty PWA: Service Worker registered'))
-      .catch((err) => console.warn('📱 Pasty PWA: SW registration failed', err))
+      .then((registration) => {
+        console.log('[PWA] Service Worker registered:', registration.scope)
+      })
+      .catch((error) => {
+        console.log('[PWA] Service Worker registration failed:', error)
+      })
   })
 }
 
-// ─── Render ──────────────────────────────────────────────────
+// ─── Render ─────────────────────────────────────────────────
 
-createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root')
+if (!rootElement) {
+  throw new Error('Root element not found. Ensure there is a <div id="root"> in your HTML.')
+}
+
+createRoot(rootElement).render(
   <StrictMode>
     <BrowserRouter>
       <App />

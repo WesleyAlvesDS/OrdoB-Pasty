@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { User } from '../types'
 import { Avatar } from './Avatar'
+import { ThemeToggle } from './ThemeToggle'
 
 interface HeaderProps {
   user: User | null
@@ -17,13 +18,25 @@ const navLinks = [
 export function Header({ user, onLogout }: HeaderProps) {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const isLandingPage = ['/send-text-to-pc', '/save-text-online', '/privacy'].includes(location.pathname)
+  const [logingOut, setLogingOut] = useState(false)
+  const isLandingPage = ['/send-text-to-pc', '/save-text-online', '/privacy', '/terms'].includes(location.pathname)
+
+  const handleLogout = () => {
+    setLogingOut(true)
+    setTimeout(() => {
+      onLogout?.()
+    }, 300)
+  }
 
   return (
     <header className="border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md sticky top-0 z-50">
+      <a href="#main-content" className="skip-to-content focus:top-0">
+        Ir para o conteúdo principal
+      </a>
+
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* ─── Logo ─────────────────────────────────────── */}
-        <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0">
+        <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0" aria-label="Pasty - Página inicial">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-sm group-hover:shadow-lg group-hover:shadow-violet-300/40 dark:group-hover:shadow-violet-950/50 transition-all duration-300 group-hover:scale-110">
             P
           </div>
@@ -34,13 +47,14 @@ export function Header({ user, onLogout }: HeaderProps) {
 
         {/* ─── Nav (desktop) ────────────────────────────── */}
         {isLandingPage && (
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1" aria-label="Navegação principal">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.href
               return (
                 <Link
                   key={link.href}
                   to={link.href}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
                       ? 'text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/30'
@@ -55,9 +69,12 @@ export function Header({ user, onLogout }: HeaderProps) {
         )}
 
         {/* ─── Direita ──────────────────────────────────── */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Theme toggle */}
+          <ThemeToggle />
+
           {user ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Avatar
                 src={user.avatar_url}
                 name={user.name}
@@ -68,16 +85,22 @@ export function Header({ user, onLogout }: HeaderProps) {
               </span>
               {onLogout && (
                 <button
-                  onClick={onLogout}
-                  className="text-sm text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-all duration-300 px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 hover:scale-105 active:scale-95 cursor-pointer"
+                  onClick={handleLogout}
+                  disabled={logingOut}
+                  className={`text-sm transition-all duration-300 px-3 py-1.5 rounded-lg hover:scale-105 active:scale-95 cursor-pointer ${
+                    logingOut
+                      ? 'text-gray-300 dark:text-gray-600'
+                      : 'text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
+                  }`}
+                  aria-label="Sair da conta"
                 >
-                  Sair
+                  {logingOut ? 'Saindo...' : 'Sair'}
                 </button>
               )}
             </div>
           ) : (
             !isLandingPage && (
-              <span className="text-xs text-gray-400 dark:text-gray-500">
+              <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">
                 Faça login para salvar
               </span>
             )
@@ -88,9 +111,11 @@ export function Header({ user, onLogout }: HeaderProps) {
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer"
-              aria-label="Abrir menu"
+              aria-label={mobileOpen ? 'Fechar menu' : 'Abrir menu'}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-menu"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 {mobileOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -104,7 +129,11 @@ export function Header({ user, onLogout }: HeaderProps) {
 
       {/* ─── Mobile menu ────────────────────────────────── */}
       {isLandingPage && mobileOpen && (
-        <nav className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 animate-fade-in">
+        <nav
+          id="mobile-menu"
+          className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 animate-slide-down overflow-y-auto max-h-[80vh]"
+          aria-label="Navegação móvel"
+        >
           <div className="px-4 py-3 space-y-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.href
@@ -113,6 +142,7 @@ export function Header({ user, onLogout }: HeaderProps) {
                   key={link.href}
                   to={link.href}
                   onClick={() => setMobileOpen(false)}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`block px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
                       ? 'text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/30'

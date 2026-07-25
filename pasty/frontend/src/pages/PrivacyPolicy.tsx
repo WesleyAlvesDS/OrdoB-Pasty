@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
+import { SEO, breadcrumbJsonLd } from '../components/SEO'
 import { Footer } from '../components/Footer'
 
 const sections = [
@@ -67,22 +68,34 @@ Você pode desabilitar cookies nas configurações do seu navegador, mas algumas
   },
 ]
 
+const pageJsonLd = breadcrumbJsonLd([
+  { name: 'Início', url: 'https://pasty.ordob.com/' },
+  { name: 'Política de Privacidade', url: 'https://pasty.ordob.com/privacy' },
+])
+
 export function PrivacyPolicy() {
   useEffect(() => {
-    document.title = 'Política de Privacidade | Pasty'
     window.scrollTo(0, 0)
   }, [])
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+      <SEO
+        title="Política de Privacidade"
+        description="Sua privacidade é prioridade. Saiba como o Pasty coleta, usa, armazena e protege suas informações pessoais em conformidade com a LGPD."
+        canonical="https://pasty.ordob.com/privacy"
+        ogType="website"
+        jsonLd={pageJsonLd}
+      />
+
       <Header user={null} />
 
       {/* ─── Hero ─────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-600/5 via-transparent to-purple-600/5 dark:from-violet-600/10 dark:to-purple-600/10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-600/5 via-transparent to-purple-600/5 dark:from-violet-600/10 dark:to-purple-600/10" aria-hidden="true" />
         <div className="relative max-w-3xl mx-auto px-4 py-16 sm:py-20 text-center">
           <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 text-xs font-medium border border-violet-200 dark:border-violet-800">
-            <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" aria-hidden="true" />
             Transparência total
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white leading-tight">
@@ -117,7 +130,7 @@ export function PrivacyPolicy() {
             >
               <div className="p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-violet-100/50 dark:hover:shadow-violet-950/30 hover:border-violet-200 dark:hover:border-violet-700">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 flex-shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 flex-shrink-0" aria-hidden="true" />
                   {section.title}
                 </h2>
                 <div className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-line">
@@ -129,7 +142,7 @@ export function PrivacyPolicy() {
 
           {/* ─── Resumo final ─────────────────────────── */}
           <div className="p-6 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border border-violet-200 dark:border-violet-800 text-center">
-            <span className="text-3xl block mb-3">🔒</span>
+            <span className="text-3xl block mb-3" aria-hidden="true">🔒</span>
             <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
               Seus dados, seu controle. Em caso de dúvidas, entre em contato conosco.
             </p>
@@ -138,7 +151,7 @@ export function PrivacyPolicy() {
               className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               Voltar ao Pasty
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </Link>

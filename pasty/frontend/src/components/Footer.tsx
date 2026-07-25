@@ -10,31 +10,19 @@ const navigation = {
     { name: 'Política de Privacidade', href: '/privacy' },
     { name: 'Termos de Uso', href: '/terms' },
   ],
-  supporters: [
-    {
-      name: 'Seu SaaS',
-      desc: 'Em breve...',
-      href: '#',
-      initial: 'S',
-    },
-    {
-      name: 'Seu Blog',
-      desc: 'Em breve...',
-      href: '#',
-      initial: 'B',
-    },
-  ],
 }
+
+const currentYear = new Date().getFullYear()
 
 export function Footer() {
   return (
-    <footer className="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-950/50">
+    <footer className="border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-950/50" role="contentinfo">
       <div className="max-w-5xl mx-auto px-4">
         {/* ─── Grid principal ──────────────────────────── */}
         <div className="py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <Link to="/" className="flex items-center gap-2 group mb-3">
+            <Link to="/" className="flex items-center gap-2 group mb-3" aria-label="Pasty - Página inicial">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-sm group-hover:shadow-lg group-hover:shadow-violet-300/40 dark:group-hover:shadow-violet-950/50 transition-all duration-300 group-hover:scale-110">
                 P
               </div>
@@ -48,7 +36,7 @@ export function Footer() {
             </p>
             {/* Badge */}
             <div className="mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-xs font-medium border border-emerald-200 dark:border-emerald-800">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
               MVP — Grátis
             </div>
           </div>
@@ -60,12 +48,12 @@ export function Footer() {
             </h3>
             <ul className="space-y-3">
               {navigation.pages.map((item) => (
-                <li key={item.name} className="group">
+                <li key={item.name}>
                   <Link
                     to={item.href}
-                    className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200 hover:translate-x-1 inline-flex items-center gap-1.5"
+                    className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200 hover:translate-x-1 inline-flex items-center gap-1.5 group"
                   >
-                    <span className="w-0.5 h-0.5 rounded-full bg-violet-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <span className="w-0.5 h-0.5 rounded-full bg-violet-500 opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
                     {item.name}
                   </Link>
                 </li>
@@ -80,12 +68,12 @@ export function Footer() {
             </h3>
             <ul className="space-y-3">
               {navigation.legal.map((item) => (
-                <li key={item.name} className="group">
+                <li key={item.name}>
                   <Link
                     to={item.href}
-                    className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200 hover:translate-x-1 inline-flex items-center gap-1.5"
+                    className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200 hover:translate-x-1 inline-flex items-center gap-1.5 group"
                   >
-                    <span className="w-1 h-1 rounded-full bg-violet-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                    <span className="w-1 h-1 rounded-full bg-violet-500 opacity-0 group-hover:opacity-100 transition-all duration-300" aria-hidden="true" />
                     {item.name}
                   </Link>
                 </li>
@@ -93,40 +81,32 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Conecte-se + Apoiadores */}
+          {/* Conecte-se */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 tracking-wide uppercase">
-              Conecte-se
+              Contato
             </h3>
             <ul className="space-y-3">
-              <li className="text-sm text-gray-500 dark:text-gray-400 inline-flex items-center gap-2">
-                <span className="text-base">✉️</span>
-                contato@pasty.app
+              <li>
+                <a
+                  href="mailto:contato@pasty.app"
+                  className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200 inline-flex items-center gap-2 group"
+                >
+                  <span className="text-base" aria-hidden="true">✉️</span>
+                  contato@pasty.app
+                </a>
               </li>
-            </ul>
-
-            {/* ─── Apoiadores (discreto) ────────────────── */}
-            <h4 className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-6 mb-3">
-              Apoiadores
-            </h4>
-            <ul className="space-y-2">
-              {navigation.supporters.map((item) => (
-                <li key={item.name}>
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group inline-flex items-center gap-2.5 text-sm text-gray-400 dark:text-gray-500 hover:text-violet-500 dark:hover:text-violet-400 transition-all duration-200"
-                  >
-                    <span className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500/30 to-purple-600/30 dark:from-violet-500/20 dark:to-purple-600/20 flex items-center justify-center text-[10px] font-bold text-violet-500 dark:text-violet-400 group-hover:scale-110 transition-transform duration-200">
-                      {item.initial}
-                    </span>
-                    <span className="group-hover:translate-x-0.5 transition-transform duration-200">
-                      {item.name}
-                    </span>
-                  </a>
-                </li>
-              ))}
+              <li>
+                <a
+                  href="https://ordob.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200 inline-flex items-center gap-2 group"
+                >
+                  <span className="text-base" aria-hidden="true">🏢</span>
+                  OrdoB Tecnologia
+                </a>
+              </li>
             </ul>
           </div>
         </div>
@@ -134,10 +114,10 @@ export function Footer() {
         {/* ─── Barra inferior ──────────────────────────── */}
         <div className="py-6 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-400 dark:text-gray-600">
-            &copy; {new Date().getFullYear()} Pasty. Todos os direitos reservados.
+            &copy; {currentYear} Pasty. Todos os direitos reservados.
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            Feito com <span className="text-red-400">♥</span> para simplificar seu dia
+            Feito com <span className="text-red-400" aria-label="amor">♥</span> para simplificar seu dia
           </p>
         </div>
       </div>

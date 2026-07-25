@@ -1,17 +1,35 @@
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useState, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { User, DestinationInfo, Clip } from '../types'
 import { getGoogleAuthUrl, saveText } from '../api'
 import { useSaveForm } from '../hooks/useSaveForm'
 import { Header } from '../components/Header'
-import { TextBox } from '../components/TextBox'
-import { DestinationSelector } from '../components/DestinationSelector'
-import { SaveButton } from '../components/SaveButton'
-import { SuccessMessage } from '../components/SuccessMessage'
-import { History } from '../components/History'
+import { SEO } from '../components/SEO'
+import { HistorySkeleton } from '../components/Skeleton'
 import { Footer } from '../components/Footer'
 
-// ─── Pending save (survives OAuth redirect) ────────────────────
+// Lazy import components that are not needed immediately
+const TextBox = lazy(() =>
+  import('../components/TextBox').then((m) => ({ default: m.TextBox })),
+)
+const DestinationSelector = lazy(() =>
+  import('../components/DestinationSelector').then((m) => ({
+    default: m.DestinationSelector,
+  })),
+)
+const SaveButton = lazy(() =>
+  import('../components/SaveButton').then((m) => ({ default: m.SaveButton })),
+)
+const SuccessMessage = lazy(() =>
+  import('../components/SuccessMessage').then((m) => ({
+    default: m.SuccessMessage,
+  })),
+)
+const History = lazy(() =>
+  import('../components/History').then((m) => ({ default: m.History })),
+)
+
+// ─── Pending save ───────────────────────────────────────────
 
 const PENDING_KEY = 'pasty_pending'
 
@@ -33,7 +51,7 @@ const destinations: DestinationInfo[] = [
   { id: 'gmail', label: 'Gmail Draft', icon: '✉️', description: 'Rascunho de e-mail', color: 'from-red-500' },
 ]
 
-// ─── Component ─────────────────────────────────────────────────
+// ─── Component ──────────────────────────────────────────────
 
 interface HomePageProps {
   isAuthenticated: boolean
@@ -47,6 +65,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
   const navigate = useNavigate()
   const [historyKey, setHistoryKey] = useState(0)
   const [pendingResult, setPendingResult] = useState<PendingResult | null>(null)
+  const [showForm, setShowForm] = useState(false)
 
   const {
     title, text, destination, saving, savedClip, isDuplicate, saveError, canSave,
@@ -70,7 +89,6 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
       window.history.replaceState({}, '', '/')
       onCallback(code)
         .then(async () => {
-          // ✅ Logou! Verifica se tem texto pendente para salvar
           const raw = sessionStorage.getItem(PENDING_KEY)
           if (!raw) return
 
@@ -91,9 +109,8 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
             setPendingResult({ clip: res.clip, duplicate: res.duplicate })
           } catch (err: unknown) {
             const axiosError = err as { response?: { data?: { error?: string } }; message?: string }
-            const pendingError = axiosError?.response?.data?.error
             setPendingResult({
-              error: pendingError ?? (err instanceof Error ? err.message : 'Erro ao salvar texto pendente'),
+              error: axiosError?.response?.data?.error ?? (err instanceof Error ? err.message : 'Erro ao salvar texto pendente'),
             })
           }
         })
@@ -116,7 +133,6 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
 
   const handleSaveClick = useCallback(() => {
     if (!isAuthenticated) {
-      // Salva intent no sessionStorage antes de redirecionar
       const pending: PendingSave = { title, text, destination }
       sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending))
       handleLogin()
@@ -143,14 +159,19 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+      <SEO
+        title="Pasty — Cole, salve e acesse de qualquer lugar"
+        description="Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail. Rápido, seguro e 100% grátis."
+        canonical="https://pasty.ordob.com/"
+      />
+
       <Header user={isAuthenticated ? user : null} onLogout={handleLogout} />
 
-      <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-8 space-y-6">
-
+      <main id="main-content" className="flex-1 w-full max-w-2xl mx-auto px-4 py-8 space-y-6">
         {/* ─── Hero branding ──────────────────────────────── */}
         <div className="text-center animate-fade-in">
           <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 text-xs font-medium border border-violet-200 dark:border-violet-800">
-            <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" aria-hidden="true" />
             Grátis — conexão inteligente com Google
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight">
@@ -163,6 +184,17 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
             Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail.
             Rápido, seguro e 100% grátis.
           </p>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 cursor-pointer"
+            aria-expanded={showForm}
+            aria-controls="save-form"
+          >
+            {showForm ? 'Fechar' : 'Começar a usar'}
+            <svg className={`w-4 h-4 transition-transform duration-300 ${showForm ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
         </div>
 
         {/* ─── Destinations preview ──────────────────────── */}
@@ -170,9 +202,9 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
           {destinations.map((dest) => (
             <div
               key={dest.id}
-              className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50"
+              className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 hover:border-violet-200 dark:hover:border-violet-700 transition-all duration-300 hover:shadow-md"
             >
-              <span className="text-2xl">{dest.icon}</span>
+              <span className="text-2xl" aria-hidden="true">{dest.icon}</span>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{dest.label}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{dest.description}</p>
@@ -183,45 +215,63 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
 
         {/* ─── Success/Error messages ─────────────────────── */}
         {(showSuccess || showError) && (
-          <SuccessMessage
-            clip={savedClip ?? pendingResult?.clip ?? null}
-            duplicate={!!showDuplicate}
-            error={saveError ?? pendingResult?.error ?? null}
-            onDismiss={dismissAll}
-          />
+          <Suspense fallback={null}>
+            <SuccessMessage
+              clip={savedClip ?? pendingResult?.clip ?? null}
+              duplicate={!!showDuplicate}
+              error={saveError ?? pendingResult?.error ?? null}
+              onDismiss={dismissAll}
+            />
+          </Suspense>
         )}
 
-        {/* ─── Formulario principal (SEMPRE visivel) ──────── */}
-        <div className="space-y-4 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
-          <div>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Titulo (opcional)"
-              className="w-full px-5 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 dark:focus:border-violet-400 transition-all duration-300 text-base shadow-sm"
-            />
-          </div>
-          <TextBox text={text} onTextChange={setText} />
+        {/* ─── Formulario principal ──────────────────────── */}
+        <div
+          id="save-form"
+          className={`space-y-4 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm transition-all duration-500 ease-in-out ${
+            showForm
+              ? 'opacity-100 max-h-[800px] translate-y-0'
+              : 'opacity-0 max-h-0 translate-y-4 overflow-hidden p-0 border-0'
+          }`}
+          aria-hidden={!showForm}
+        >
+          {showForm && (
+            <Suspense fallback={<div className="h-12 animate-pulse bg-gray-200 dark:bg-gray-800 rounded-xl" />}>
+              <div>
+                <label htmlFor="paste-title" className="sr-only">Título</label>
+                <input
+                  id="paste-title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Título (opcional)"
+                  className="w-full px-5 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 dark:focus:border-violet-400 transition-all duration-300 text-base shadow-sm"
+                />
+              </div>
+              <TextBox text={text} onTextChange={setText} />
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-            <DestinationSelector selected={destination} onChange={setDestination} />
-            <SaveButton
-              onClick={handleSaveClick}
-              loading={saving}
-              disabled={!canSave}
-              isAuthenticated={isAuthenticated}
-            />
-          </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                <DestinationSelector selected={destination} onChange={setDestination} />
+                <SaveButton
+                  onClick={handleSaveClick}
+                  loading={saving}
+                  disabled={!canSave}
+                  isAuthenticated={isAuthenticated}
+                />
+              </div>
+            </Suspense>
+          )}
         </div>
 
-        {/* ─── Historico (so se logado) ──────────────────── */}
+        {/* ─── Histórico ──────────────────────────────────── */}
         {isAuthenticated && user && token && (
           <div className="animate-slide-up">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-              📋 Historico
+              📋 Histórico
             </h2>
-            <History token={token} refreshKey={historyKey} />
+            <Suspense fallback={<HistorySkeleton />}>
+              <History token={token} refreshKey={historyKey} />
+            </Suspense>
           </div>
         )}
       </main>

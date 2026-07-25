@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
+import { SEO, faqJsonLd, breadcrumbJsonLd } from '../components/SEO'
 import { Footer } from '../components/Footer'
 
 const steps = [
@@ -26,25 +27,37 @@ const faqs = [
   { q: 'Posso salvar textos grandes?', a: 'Sim, não há limite de tamanho. Mas lembre-se de que cada serviço Google tem suas próprias limitações.' },
 ]
 
+const pageJsonLd = breadcrumbJsonLd([
+  { name: 'Início', url: 'https://pasty.ordob.com/' },
+  { name: 'Salvar texto online', url: 'https://pasty.ordob.com/save-text-online' },
+])
+
 function FAQItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean; onToggle: () => void }) {
   return (
     <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden transition-all duration-300">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200 cursor-pointer"
-      >
-        <span className="text-sm font-medium text-gray-900 dark:text-white">{q}</span>
-        <svg
-          className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
+      <h3>
+        <button
+          onClick={onToggle}
+          className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-200 cursor-pointer"
+          aria-expanded={open}
+          aria-controls={`faq-answer-${q.replace(/\s+/g, '-').toLowerCase()}`}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+          <span className="text-sm font-medium text-gray-900 dark:text-white">{q}</span>
+          <svg
+            className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </h3>
       <div
+        id={`faq-answer-${q.replace(/\s+/g, '-').toLowerCase()}`}
+        role="region"
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
           open ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
         }`}
@@ -59,7 +72,6 @@ function FAQItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
 
 export function SaveTextOnline() {
   useEffect(() => {
-    document.title = 'Salve texto online grátis | Pasty'
     window.scrollTo(0, 0)
   }, [])
 
@@ -67,11 +79,19 @@ export function SaveTextOnline() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
+      <SEO
+        title="Salve texto online grátis"
+        description="Precisa salvar um texto rapidamente e acessar de qualquer lugar? O Pasty deixa você colar, salvar e acessar seus textos no Google Drive, Docs ou Gmail em segundos. Grátis."
+        canonical="https://pasty.ordob.com/save-text-online"
+        ogType="website"
+        jsonLd={{ ...faqJsonLd(faqs), ...pageJsonLd }}
+      />
+
       <Header user={null} />
 
       {/* ─── Hero ─────────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-emerald-500/10 dark:bg-emerald-500/5 blur-3xl" />
           <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-teal-500/10 dark:bg-teal-500/5 blur-3xl" />
         </div>
@@ -113,7 +133,7 @@ export function SaveTextOnline() {
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.97] transition-all duration-300"
               >
                 Salvar texto agora
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </Link>
@@ -129,8 +149,8 @@ export function SaveTextOnline() {
       </section>
 
       {/* ─── Steps ────────────────────────────────────── */}
-      <section className="max-w-4xl mx-auto px-4 pb-16">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
+      <section className="max-w-4xl mx-auto px-4 pb-16" aria-labelledby="steps-title">
+        <h2 id="steps-title" className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
           Como salvar texto online
         </h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-12 max-w-md mx-auto">
@@ -144,9 +164,7 @@ export function SaveTextOnline() {
               className="group p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-emerald-100/50 dark:hover:shadow-emerald-950/30 hover:-translate-y-1 hover:border-emerald-200 dark:hover:border-emerald-700"
               style={{ animation: `fade-in 0.4s ease-out ${0.1 * index}s both` }}
             >
-              <span className="text-3xl block mb-4 transition-transform duration-300 group-hover:scale-125">
-                {icon}
-              </span>
+              <span className="text-3xl block mb-4 transition-transform duration-300 group-hover:scale-125" aria-hidden="true">{icon}</span>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{desc}</p>
             </div>
@@ -155,9 +173,9 @@ export function SaveTextOnline() {
       </section>
 
       {/* ─── Comparison Table ─────────────────────────── */}
-      <section className="border-t border-gray-200 dark:border-gray-800 bg-gradient-to-b from-white to-emerald-50/50 dark:from-gray-950 dark:to-emerald-950/20">
+      <section className="border-t border-gray-200 dark:border-gray-800 bg-gradient-to-b from-white to-emerald-50/50 dark:from-gray-950 dark:to-emerald-950/20" aria-labelledby="comparison-title">
         <div className="max-w-4xl mx-auto px-4 py-16">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
+          <h2 id="comparison-title" className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
             Por que escolher o Pasty?
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-10 max-w-md mx-auto">
@@ -165,14 +183,14 @@ export function SaveTextOnline() {
           </p>
 
           <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm" role="table">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
                   <th className="text-left py-4 px-5 font-semibold text-gray-900 dark:text-white">Funcionalidade</th>
                   <th className="text-center py-4 px-5 font-semibold text-emerald-600 dark:text-emerald-400">
                     <span className="inline-flex items-center gap-1">
                       Pasty
-                      <span className="text-xs">⭐</span>
+                      <span className="text-xs" aria-hidden="true">⭐</span>
                     </span>
                   </th>
                   <th className="text-center py-4 px-5 font-semibold text-gray-500">Bloco de Notas</th>
@@ -187,9 +205,9 @@ export function SaveTextOnline() {
                     style={{ animation: `fade-in 0.3s ease-out ${0.05 * index}s both` }}
                   >
                     <td className="py-3.5 px-5 text-gray-700 dark:text-gray-300 font-medium">{feature}</td>
-                    <td className="text-center py-3.5 px-5 text-lg">{us}</td>
-                    <td className="text-center py-3.5 px-5 text-lg text-gray-300 dark:text-gray-600">{other1}</td>
-                    <td className="text-center py-3.5 px-5 text-lg text-gray-300 dark:text-gray-600">{other2}</td>
+                    <td className="text-center py-3.5 px-5 text-lg" aria-label="Disponível">{us}</td>
+                    <td className="text-center py-3.5 px-5 text-lg text-gray-300 dark:text-gray-600" aria-label="Não disponível">{other1}</td>
+                    <td className="text-center py-3.5 px-5 text-lg text-gray-300 dark:text-gray-600" aria-label="Não disponível">{other2}</td>
                   </tr>
                 ))}
               </tbody>
@@ -199,8 +217,8 @@ export function SaveTextOnline() {
       </section>
 
       {/* ─── FAQ ──────────────────────────────────────── */}
-      <section className="max-w-2xl mx-auto px-4 py-16">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
+      <section className="max-w-2xl mx-auto px-4 py-16" aria-labelledby="faq-title">
+        <h2 id="faq-title" className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
           Perguntas frequentes
         </h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-10 max-w-md mx-auto">
@@ -226,10 +244,10 @@ export function SaveTextOnline() {
 
       {/* ─── CTA Final ────────────────────────────────── */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-teal-600/5 dark:from-emerald-600/10 dark:to-teal-600/10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 via-transparent to-teal-600/5 dark:from-emerald-600/10 dark:to-teal-600/10" aria-hidden="true" />
 
         <div className="relative max-w-2xl mx-auto px-4 py-20 text-center">
-          <span className="text-4xl block mb-4">✨</span>
+          <span className="text-4xl block mb-4" aria-hidden="true">✨</span>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
             Pronto para salvar texto online?
           </h2>
@@ -241,7 +259,7 @@ export function SaveTextOnline() {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.97] transition-all duration-300"
           >
             Salvar texto agora
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </Link>
