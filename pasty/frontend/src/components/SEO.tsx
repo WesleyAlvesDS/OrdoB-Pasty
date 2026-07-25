@@ -62,8 +62,8 @@ export function SEO({
     linkEl.href = canonical
 
     // JSON-LD
-    if (jsonLd) {
-      const scriptId = `json-ld-${title.replace(/\s+/g, '-').toLowerCase()}`
+    const scriptId = jsonLd ? `json-ld-${title.replace(/\s+/g, '-').toLowerCase()}` : null
+    if (jsonLd && scriptId) {
       let scriptEl = document.getElementById(scriptId) as HTMLScriptElement | null
       if (!scriptEl) {
         scriptEl = document.createElement('script')
@@ -76,8 +76,10 @@ export function SEO({
 
     return () => {
       // Cleanup: remove JSON-LD scripts added by this component instance
-      const scriptEl = document.getElementById(scriptId)
-      if (scriptEl) scriptEl.remove()
+      if (scriptId) {
+        const scriptEl = document.getElementById(scriptId)
+        if (scriptEl) scriptEl.remove()
+      }
     }
   }, [fullTitle, description, canonical, ogType, ogImage, jsonLd])
 

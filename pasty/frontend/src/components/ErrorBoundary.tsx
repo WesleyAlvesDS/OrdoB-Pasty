@@ -59,7 +59,7 @@ export class ErrorBoundary extends Component<Props, State> {
               Recarregar página
             </button>
           </div>
-          {process.env.NODE_ENV === 'development' && this.state.error && (
+          {import.meta.env.DEV && this.state.error && (
             <details className="mt-6 w-full max-w-md">
               <summary className="text-xs text-gray-400 cursor-pointer">Detalhes do erro</summary>
               <pre className="mt-2 p-3 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs text-red-600 dark:text-red-400 overflow-auto whitespace-pre-wrap">

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { saveText } from '../api'
-import type { Clip } from '../types'
+import type { Clip, Destination } from '../types'
 
 const DRAFT_KEY = 'pasty_draft'
 const AUTOSAVE_DELAY = 2000
@@ -8,14 +8,14 @@ const AUTOSAVE_DELAY = 2000
 interface Draft {
   title: string
   text: string
-  destination: string
+  destination: Destination
   savedAt: number
 }
 
 interface SaveFormState {
   title: string
   text: string
-  destination: string
+  destination: Destination
   saving: boolean
   savedClip: Clip | null
   isDuplicate: boolean
@@ -108,7 +108,7 @@ export function useSaveForm(
     setState((prev) => ({ ...prev, text }))
   }, [])
 
-  const setDestination = useCallback((destination: string) => {
+  const setDestination = useCallback((destination: Destination) => {
     setState((prev) => ({ ...prev, destination }))
   }, [])
 

@@ -1,14 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToastActions } from './Toast'
 import { getMe } from '../api'
-
-interface AuthGuardProps {
-  token: string | null
-  user: { name?: string | null; email: string } | null
-  isAuthenticated: boolean
-  onLogout: () => void
-}
 
 export function LogoutDialog({
   open,

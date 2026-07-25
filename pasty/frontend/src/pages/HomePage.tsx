@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { User, DestinationInfo, Clip } from '../types'
+import type { User, DestinationInfo, Clip, Destination } from '../types'
 import { getGoogleAuthUrl, saveText } from '../api'
 import { useSaveForm } from '../hooks/useSaveForm'
 import { Header } from '../components/Header'
@@ -38,7 +38,7 @@ const PENDING_KEY = 'pasty_pending'
 interface PendingSave {
   title: string
   text: string
-  destination: string
+  destination: Destination
 }
 
 interface PendingResult {
