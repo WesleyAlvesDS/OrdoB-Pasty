@@ -9,6 +9,7 @@ import { HistorySkeleton } from '../components/Skeleton'
 import { LogoutDialog } from '../components/AuthGuard'
 import { useToastActions } from '../components/Toast'
 import { Footer } from '../components/Footer'
+import { QRCode } from '../components/QRCode'
 
 // Lazy import components that are not needed immediately
 const TextBox = lazy(() =>
@@ -319,6 +320,27 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 text-right tabular-nums">
                   Rascunho salvo automaticamente
                 </p>
+              )}
+
+              {/* QR Code Section */}
+              {text?.trim() && (
+                <div className="flex justify-center pt-2">
+                  <details className="group w-full">
+                    <summary className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500 hover:text-violet-600 dark:hover:text-violet-400 hover:border-violet-300 dark:hover:border-violet-600 transition-all duration-200 cursor-pointer list-none">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                      </svg>
+                      <span className="group-open:hidden">Gerar QR Code</span>
+                      <span className="hidden group-open:inline">Ocultar QR Code</span>
+                      <svg className={`w-3 h-3 transition-transform duration-200 group-open:rotate-180`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </summary>
+                    <div className="pt-3">
+                      <QRCode text={text} title={title} />
+                    </div>
+                  </details>
+                </div>
               )}
             </Suspense>
           )}

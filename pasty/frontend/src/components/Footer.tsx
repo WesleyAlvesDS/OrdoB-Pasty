@@ -34,10 +34,24 @@ export function Footer() {
               Cole qualquer texto e salve diretamente no Google Docs, Google Drive ou Gmail.
               Acesse de qualquer dispositivo.
             </p>
-            {/* Badge */}
-            <div className="mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-xs font-medium border border-emerald-200 dark:border-emerald-800">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
-              MVP — Grátis
+            {/* Badges */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-xs font-medium border border-emerald-200 dark:border-emerald-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
+                MVP — Grátis
+              </div>
+              {/* Desenvolvido pela OrdoB Badge */}
+              <a
+                href="https://ordob.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FE5416]/10 dark:bg-[#FE5416]/20 text-[#FE5416] dark:text-[#FE5416] text-xs font-medium border border-[#FE5416]/20 dark:border-[#FE5416]/30 hover:bg-[#FE5416]/20 dark:hover:bg-[#FE5416]/30 transition-all duration-200"
+              >
+                <span className="flex h-3 w-3 items-center justify-center rounded-full bg-[#FE5416]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                </span>
+                Desenvolvido pela OrdoB
+              </a>
             </div>
           </div>
 
@@ -106,7 +120,7 @@ export function Footer() {
                   className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200 inline-flex items-center gap-2 group"
                 >
                   <span className="text-base" aria-hidden="true">✉️</span>
-                  contato@pasty.app
+                  contato@ordob.com
                 </a>
               </li>
               <li>
@@ -124,26 +138,27 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Matrix Badge */}
+        {/* Matrix Badge - Desenvolvido pela OrdoB */}
         <div className="flex justify-center pb-6">
           <a
             href="https://ordob.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-violet-200 dark:hover:border-violet-700 transition-all duration-300 hover:shadow-md group"
+            className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-[#FE5416]/30 hover:shadow-md hover:shadow-[#FE5416]/5 transition-all duration-300 group"
           >
-            <div className="flex items-center gap-1.5">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#FE5416]">
-                <span className="h-1.5 w-1.5 rounded-full bg-white" />
+            <span className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#FE5416] group-hover:scale-110 transition-transform">
+                <span className="h-2 w-2 rounded-full bg-white" />
               </span>
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 group-hover:text-[#FE5416] transition-colors">
                 OrdoB
               </span>
-            </div>
-            <span className="text-xs text-gray-400 dark:text-gray-500">|</span>
-            <span className="text-xs font-medium text-violet-600 dark:text-violet-400 group-hover:text-violet-500 transition-colors">
+            </span>
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">×</span>
+            <span className="text-xs font-medium text-violet-600 dark:text-violet-400">
               Pasty
             </span>
+            <span className="text-[9px] text-gray-400 dark:text-gray-500 hidden sm:inline">| Desenvolvido pela OrdoB</span>
             <svg className="w-3 h-3 text-gray-400 dark:text-gray-500 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
@@ -153,12 +168,15 @@ export function Footer() {
         {/* ─── Barra inferior ──────────────────────────── */}
         <div className="py-6 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-400 dark:text-gray-600">
-            &copy; {currentYear} Pasty. Todos os direitos reservados.
+            &copy; {currentYear} Pasty. Feito com 💜 pela{' '}
+            <a href="https://ordob.com" target="_blank" rel="noopener noreferrer" className="text-[#FE5416] hover:text-[#E04A12] transition-colors font-medium">
+              OrdoB Tecnologia
+            </a>
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            Feito com <span className="text-red-400" aria-label="amor">♥</span> no{' '}
+            Um produto do{' '}
             <a href="https://ordob.com" target="_blank" rel="noopener noreferrer" className="text-violet-500 hover:text-violet-400 transition-colors">
-              núcleo OrdoB
+              ecossistema OrdoB
             </a>
           </p>
         </div>
