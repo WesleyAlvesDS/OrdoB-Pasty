@@ -54,7 +54,7 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-  ::webkit-scrollbar-thumb {
+  ::-webkit-scrollbar-thumb {
     background: oklch(0.3 0 0 / 0.5);
   }
 }
