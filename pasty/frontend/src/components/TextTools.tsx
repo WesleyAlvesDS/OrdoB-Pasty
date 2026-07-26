@@ -68,19 +68,31 @@ export function TextTools({ text, title, onTextChange, onTitleChange }: TextTool
 
       {/* Tab Content */}
       <div className="p-4">
-        {TABS.map((tab) => {
-          if (activeTab !== tab.id) return null
-          const C = tab.Component
-          return (
-            <div key={tab.id} className="animate-fade-in">
-              {tab.id === 'stats' && <C text={text} />}
-              {tab.id === 'tools' && <C text={text} onTextChange={onTextChange} />}
-              {tab.id === 'export' && <C text={text} title={title} />}
-              {tab.id === 'detect' && <C text={text} />}
-              {tab.id === 'templates' && <C text={text} title={title} onTextChange={onTextChange} onTitleChange={onTitleChange} />}
-            </div>
-          )
-        })}
+        {activeTab === 'stats' && (
+          <div className="animate-fade-in" key="stats">
+            <TextStats text={text} />
+          </div>
+        )}
+        {activeTab === 'tools' && (
+          <div className="animate-fade-in" key="tools">
+            <TextCleanup text={text} onTextChange={onTextChange} />
+          </div>
+        )}
+        {activeTab === 'export' && (
+          <div className="animate-fade-in" key="export">
+            <TextExport text={text} title={title} />
+          </div>
+        )}
+        {activeTab === 'detect' && (
+          <div className="animate-fade-in" key="detect">
+            <TextDetect text={text} />
+          </div>
+        )}
+        {activeTab === 'templates' && (
+          <div className="animate-fade-in" key="templates">
+            <TextTemplates text={text} onTextChange={onTextChange} onTitleChange={onTitleChange} />
+          </div>
+        )}
       </div>
     </div>
   )

@@ -9,7 +9,6 @@ interface Template {
 
 interface TextTemplatesProps {
   text: string
-  title: string
   onTextChange: (text: string) => void
   onTitleChange: (title: string) => void
 }
@@ -27,7 +26,7 @@ function saveTemplates(templates: Template[]) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(templates)) } catch { /* full */ }
 }
 
-export function TextTemplates({ text, title, onTextChange, onTitleChange }: TextTemplatesProps) {
+export function TextTemplates({ text, onTextChange, onTitleChange }: TextTemplatesProps) {
   const [templates, setTemplates] = useState<Template[]>(loadTemplates)
   const [templateName, setTemplateName] = useState('')
   const [toast, setToast] = useState<string | null>(null)
