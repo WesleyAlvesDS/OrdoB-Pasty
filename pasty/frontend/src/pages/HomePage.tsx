@@ -10,6 +10,7 @@ import { LogoutDialog } from '../components/AuthGuard'
 import { useToastActions } from '../components/Toast'
 import { Footer } from '../components/Footer'
 import { QRCode } from '../components/QRCode'
+import { TextTools } from '../components/TextTools'
 
 // Lazy import components that are not needed immediately
 const TextBox = lazy(() =>
@@ -200,7 +201,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
         onLogout={handleLogoutClick}
       />
 
-      <main id="main-content" className="flex-1 w-full max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <main id="main-content" className="flex-1 w-full max-w-6xl mx-auto px-4 py-8">
         {/* ─── Auth loading overlay ──────────────────────────── */}
         {authLoading && (
           <div className="fixed inset-0 z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm flex items-center justify-center" role="status" aria-label="Autenticando">
@@ -215,74 +216,79 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
           </div>
         )}
 
-        {/* ─── Hero branding ──────────────────────────────── */}
-        <div className="text-center animate-fade-in">
-          <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 text-xs font-medium border border-violet-200 dark:border-violet-800">
-            <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" aria-hidden="true" />
-            Grátis — conexão inteligente com Google
-          </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight">
-            Cole, salve e{' '}
-            <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              acesse de qualquer lugar
-            </span>
-          </h1>
-          <p className="mt-4 text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto leading-relaxed">
-            Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail.
-            Rápido, seguro e 100% grátis.
-          </p>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 cursor-pointer"
-            aria-expanded={showForm}
-            aria-controls="save-form"
-          >
-            {showForm ? 'Fechar' : 'Começar a usar'}
-            <svg className={`w-4 h-4 transition-transform duration-300 ${showForm ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-        </div>
+        {/* ─── Grid Layout: main content + sidebar tools ──── */}
+        <div className="lg:grid lg:grid-cols-3 lg:gap-8">
+          {/* ─── Left Column: Hero + Form ───────────────── */}
+          <div className="lg:col-span-2 space-y-6">
 
-        {/* ─── Destinations preview ──────────────────────── */}
-        <h2 className="sr-only">Destinos disponíveis</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {destinations.map((dest) => (
-            <div
-              key={dest.id}
-              className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 hover:border-violet-200 dark:hover:border-violet-700 transition-all duration-300 hover:shadow-md"
-            >
-              <span className="text-2xl" aria-hidden="true">{dest.icon}</span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{dest.label}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{dest.description}</p>
+            {/* ─── Hero branding ──────────────────────────────── */}
+            <div className="text-center animate-fade-in">
+              <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 text-xs font-medium border border-violet-200 dark:border-violet-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" aria-hidden="true" />
+                Grátis — conexão inteligente com Google
               </div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-[1.05] tracking-tight">
+                Cole, salve e{' '}
+                <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  acesse de qualquer lugar
+                </span>
+              </h1>
+              <p className="mt-4 text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto leading-relaxed">
+                Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail.
+                Rápido, seguro e 100% grátis.
+              </p>
+              <button
+                onClick={() => setShowForm(!showForm)}
+                className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 cursor-pointer"
+                aria-expanded={showForm}
+                aria-controls="save-form"
+              >
+                {showForm ? 'Fechar' : 'Começar a usar'}
+                <svg className={`w-4 h-4 transition-transform duration-300 ${showForm ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
             </div>
-          ))}
-        </div>
 
-        {/* ─── Success/Error messages ─────────────────────── */}
-        {(showSuccess || showError) && (
-          <Suspense fallback={null}>
-            <SuccessMessage
-              clip={savedClip ?? pendingResult?.clip ?? null}
-              duplicate={!!showDuplicate}
-              error={saveError ?? pendingResult?.error ?? null}
-              onDismiss={dismissAll}
-            />
-          </Suspense>
-        )}
+            {/* ─── Destinations preview ──────────────────────── */}
+            <h2 className="sr-only">Destinos disponíveis</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {destinations.map((dest) => (
+                <div
+                  key={dest.id}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 hover:border-violet-200 dark:hover:border-violet-700 transition-all duration-300 hover:shadow-md"
+                >
+                  <span className="text-2xl" aria-hidden="true">{dest.icon}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{dest.label}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{dest.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-        {/* ─── Formulario principal ──────────────────────── */}
-        <div
-          id="save-form"
-          className={`space-y-4 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm transition-all duration-500 ease-in-out ${
-            showForm
-              ? 'opacity-100 max-h-[800px] translate-y-0'
-              : 'opacity-0 max-h-0 translate-y-4 overflow-hidden p-0 border-0'
-          }`}
-          aria-hidden={!showForm}
-        >
+            {/* ─── Success/Error messages ─────────────────────── */}
+            {(showSuccess || showError) && (
+              <Suspense fallback={null}>
+                <SuccessMessage
+                  clip={savedClip ?? pendingResult?.clip ?? null}
+                  duplicate={!!showDuplicate}
+                  error={saveError ?? pendingResult?.error ?? null}
+                  onDismiss={dismissAll}
+                />
+              </Suspense>
+            )}
+
+                {/* ─── Formulario principal ──────────────────────── */}
+            <div
+              id="save-form"
+              className={`space-y-4 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm transition-all duration-500 ease-in-out ${
+                showForm
+                  ? 'opacity-100 max-h-[2000px] translate-y-0'
+                  : 'opacity-0 max-h-0 translate-y-4 overflow-hidden p-0 border-0'
+              }`}
+              aria-hidden={!showForm}
+            >
           {showForm && (
             <Suspense fallback={<div className="h-12 animate-pulse bg-gray-200 dark:bg-gray-800 rounded-xl" />}>
               <div>
@@ -346,17 +352,52 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
           )}
         </div>
 
-        {/* ─── Histórico ──────────────────────────────────── */}
-        {isAuthenticated && user && token && (
-          <div className="animate-slide-up">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-              📋 Histórico
-            </h2>
-            <Suspense fallback={<HistorySkeleton />}>
-              <History token={token} refreshKey={historyKey} />
-            </Suspense>
+            {/* ─── Histórico ──────────────────────────────────── */}
+            {isAuthenticated && user && token && (
+              <div className="animate-slide-up">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                  📋 Histórico
+                </h2>
+                <Suspense fallback={<HistorySkeleton />}>
+                  <History token={token} refreshKey={historyKey} />
+                </Suspense>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* ─── Right Column: Text Tools Sidebar ──────── */}
+          <div className="lg:col-span-1 mt-8 lg:mt-0 lg:sticky lg:top-24 lg:self-start">
+            {/* Mobile toggle button */}
+            <div className="lg:hidden">
+              <button
+                type="button"
+                onClick={() => setShowForm(!showForm)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer mb-3"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                </svg>
+                {showForm ? 'Fechar ferramentas' : 'Ferramentas'}
+              </button>
+            </div>
+
+            {/* Tools panel — always visible on desktop, collapsible on mobile via showForm state */}
+            <div className={`transition-all duration-500 ease-in-out ${
+              showForm
+                ? 'opacity-100 max-h-[2000px] translate-y-0'
+                : 'opacity-0 max-h-0 overflow-hidden translate-y-4 lg:opacity-100 lg:max-h-[2000px] lg:translate-y-0 lg:overflow-visible'
+            }`}>
+              <div className="animate-slide-up">
+                <TextTools
+                  text={text}
+                  title={title}
+                  onTextChange={setText}
+                  onTitleChange={setTitle}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
 
       {/* ─── Empty state for unauthenticated users ───── */}
