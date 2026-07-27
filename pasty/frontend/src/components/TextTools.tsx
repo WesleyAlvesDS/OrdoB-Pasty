@@ -45,7 +45,7 @@ export function TextTools({ text, title, onTextChange, onTitleChange }: TextTool
   return (
     <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden animate-scale-in">
       {/* Tab Navigation */}
-      <div className="flex overflow-x-auto border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+      <div className="flex flex-wrap border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id
           return (

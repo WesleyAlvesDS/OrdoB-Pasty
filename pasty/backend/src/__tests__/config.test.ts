@@ -16,7 +16,7 @@ function resetEnv() {
   delete process.env.GOOGLE_CLIENT_SECRET
   delete process.env.GOOGLE_REDIRECT_URI
   delete process.env.JWT_SECRET
-  delete process.env.DATABASE_URL
+  delete process.env.DATABASE_PATH
   delete process.env.FRONTEND_URL
   delete process.env.PORT
 }
@@ -48,7 +48,7 @@ describe('config', () => {
     expect(config.scopes).toContain('openid')
     expect(config.jwtSecret).toBe('change-me-in-production')
     expect(config.jwtExpiryHours).toBe(24)
-    expect(config.databaseUrl).toBe('postgres://postgres:postgres@localhost:5432/pasty')
+    expect(config.databasePath).toBe('./data/pasty.db')
     expect(config.frontendUrl).toBe('http://localhost:5173')
     expect(config.port).toBe(8000)
   })
@@ -81,12 +81,12 @@ describe('config', () => {
     expect(config.jwtSecret).toBe('super-secret-jwt')
   })
 
-  it('reads DATABASE_URL from env', async () => {
-    setEnv({ DATABASE_URL: 'postgres://user:pass@remote-host:5432/mydb' })
+  it('reads DATABASE_PATH from env', async () => {
+    setEnv({ DATABASE_PATH: '/custom/path/pasty.db' })
 
     const { config } = await import('../config.js')
 
-    expect(config.databaseUrl).toBe('postgres://user:pass@remote-host:5432/mydb')
+    expect(config.databasePath).toBe('/custom/path/pasty.db')
   })
 
   it('reads FRONTEND_URL from env', async () => {

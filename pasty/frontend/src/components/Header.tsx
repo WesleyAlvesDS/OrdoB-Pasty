@@ -18,11 +18,11 @@ const navLinks = [
 export function Header({ user, onLogout }: HeaderProps) {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [logingOut, setLogingOut] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
   const isLandingPage = ['/send-text-to-pc', '/save-text-online', '/privacy', '/terms'].includes(location.pathname)
 
   const handleLogout = () => {
-    setLogingOut(true)
+    setLoggingOut(true)
     setTimeout(() => {
       onLogout?.()
     }, 300)
@@ -56,7 +56,7 @@ export function Header({ user, onLogout }: HeaderProps) {
             <span className="flex h-3 w-3 items-center justify-center rounded-full bg-[#FE5416]">
               <span className="h-1 w-1 rounded-full bg-white" />
             </span>
-            OrdoB
+            OrdoB™
           </a>
         </div>
 
@@ -101,15 +101,15 @@ export function Header({ user, onLogout }: HeaderProps) {
               {onLogout && (
                 <button
                   onClick={handleLogout}
-                  disabled={logingOut}
+                  disabled={loggingOut}
                   className={`text-sm transition-all duration-300 px-3 py-1.5 rounded-lg hover:scale-105 active:scale-95 cursor-pointer ${
-                    logingOut
+                    loggingOut
                       ? 'text-gray-300 dark:text-gray-600'
                       : 'text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
                   }`}
                   aria-label="Sair da conta"
                 >
-                  {logingOut ? 'Saindo...' : 'Sair'}
+                  {loggingOut ? 'Saindo...' : 'Sair'}
                 </button>
               )}
             </div>
@@ -180,7 +180,7 @@ export function Header({ user, onLogout }: HeaderProps) {
                 <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#FE5416]">
                   <span className="h-1.5 w-1.5 rounded-full bg-white" />
                 </span>
-                OrdoB Matriz
+                OrdoB™ Matriz
               </span>
             </a>
           </div>

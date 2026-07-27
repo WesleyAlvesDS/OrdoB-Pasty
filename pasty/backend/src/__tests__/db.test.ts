@@ -1,24 +1,21 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
-// ─── Mock pg module ───────────────────────────────────────────
+// ─── Mock config to use in-memory database ────────────────────
 
-const mockQuery = vi.fn()
-const mockConnect = vi.fn()
-const mockRelease = vi.fn()
+vi.mock('../config.js', () => ({
+  config: {
+    get databasePath() { return process.env.DATABASE_PATH ?? ':memory:' },
+  },
+}))
 
-vi.mock('pg', () => {
-  class MockPool {
-    query = mockQuery
-    connect = mockConnect
-    end = vi.fn()
-  }
+// ─── Mock fs to avoid disk writes ─────────────────────────────
 
-  return {
-    Pool: MockPool,
-    default: { Pool: MockPool },
-    types: { getTypeParser: () => (v: string) => v },
-  }
-})
+vi.mock('node:fs', () => ({
+  readFileSync: vi.fn().mockReturnValue(Buffer.from([])),
+  writeFileSync: vi.fn(),
+  mkdirSync: vi.fn(),
+  existsSync: vi.fn().mockReturnValue(false),
+}))
 
 // ─── Helpers ──────────────────────────────────────────────────
 
@@ -45,51 +42,36 @@ const sampleClipRow = {
   created_at: new Date().toISOString(),
 }
 
-function setupQuerySuccess(rows: Record<string, unknown>[]) {
-  mockQuery.mockResolvedValue({ rows })
-}
-
-function setupQueryCount(count: number) {
-  mockQuery.mockResolvedValue({ rows: [{ count }] })
-}
-
 // ─── Tests ────────────────────────────────────────────────────
 
 describe('db', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
-    process.env.DATABASE_URL = 'postgres://test:test@localhost:5432/testdb'
+    process.env.DATABASE_PATH = ':memory:'
 
-    // Set up connection mock (for initDatabase's pool.connect call)
-    const mockClient = {
-      query: vi.fn().mockResolvedValue({ rows: [{ '?column?': 1 }] }),
-      release: mockRelease,
-    }
-    mockConnect.mockResolvedValue(mockClient)
-
-    // Default pool.query returns empty result
-    mockQuery.mockResolvedValue({ rows: [] })
-
-    // Initialize the database (creates the pool with mocked pg)
     const db = await import('../db.js')
     await db.initDatabase()
-
-    // Clear schema init calls so tests only see their own query calls
-    mockQuery.mockClear()
-    mockConnect.mockClear()
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
-    delete process.env.DATABASE_URL
+    delete process.env.DATABASE_PATH
   })
 
   describe('findUserByGoogleId', () => {
     it('returns user when found', async () => {
-      setupQuerySuccess([sampleUserRow])
-
       const db = await import('../db.js')
-      const user = await db.findUserByGoogleId('google-123')
+      db.createUser({
+        google_id: 'google-123',
+        email: 'user@example.com',
+        name: 'Test User',
+        avatar_url: null,
+        access_token: 'access-token',
+        refresh_token: 'refresh-token',
+        token_expires_at: new Date(Date.now() + 86400000).toISOString(),
+      })
+
+      const user = db.findUserByGoogleId('google-123')
 
       expect(user).toBeDefined()
       expect(user!.id).toBe(1)
@@ -99,10 +81,8 @@ describe('db', () => {
     })
 
     it('returns undefined when user not found', async () => {
-      setupQuerySuccess([])
-
       const db = await import('../db.js')
-      const user = await db.findUserByGoogleId('nonexistent')
+      const user = db.findUserByGoogleId('nonexistent')
 
       expect(user).toBeUndefined()
     })
@@ -110,10 +90,18 @@ describe('db', () => {
 
   describe('findUserById', () => {
     it('returns user for valid id', async () => {
-      setupQuerySuccess([sampleUserRow])
-
       const db = await import('../db.js')
-      const user = await db.findUserById(1)
+      db.createUser({
+        google_id: 'google-123',
+        email: 'user@example.com',
+        name: 'Test User',
+        avatar_url: null,
+        access_token: 'access-token',
+        refresh_token: 'refresh-token',
+        token_expires_at: new Date(Date.now() + 86400000).toISOString(),
+      })
+
+      const user = db.findUserById(1)
 
       expect(user).toBeDefined()
       expect(user!.id).toBe(1)
@@ -121,10 +109,8 @@ describe('db', () => {
     })
 
     it('returns undefined for invalid id', async () => {
-      setupQuerySuccess([])
-
       const db = await import('../db.js')
-      const user = await db.findUserById(999)
+      const user = db.findUserById(999)
 
       expect(user).toBeUndefined()
     })
@@ -132,10 +118,8 @@ describe('db', () => {
 
   describe('createUser', () => {
     it('inserts a new user and returns it', async () => {
-      setupQuerySuccess([sampleUserRow])
-
       const db = await import('../db.js')
-      const user = await db.createUser({
+      const user = db.createUser({
         google_id: 'google-123',
         email: 'user@example.com',
         name: 'Test User',
@@ -153,24 +137,48 @@ describe('db', () => {
 
   describe('updateUserTokens', () => {
     it('updates tokens for a user', async () => {
-      setupQuerySuccess([])
-
       const db = await import('../db.js')
-      await db.updateUserTokens(1, 'new-access', null, new Date().toISOString())
+      const user = db.createUser({
+        google_id: 'google-123',
+        email: 'user@example.com',
+        name: 'Test User',
+        avatar_url: null,
+        access_token: 'old-access',
+        refresh_token: 'old-refresh',
+        token_expires_at: null,
+      })
 
-      expect(mockQuery).toHaveBeenCalled()
-      const call = mockQuery.mock.calls[0]
-      expect(call[0]).toContain('UPDATE users')
-      expect(call[1]).toContain(1)
+      db.updateUserTokens(user.id, 'new-access', null, '2025-12-31T00:00:00Z')
+
+      const updated = db.findUserById(user.id)!
+      expect(updated.access_token).toBe('new-access')
+      expect(updated.refresh_token).toBe('old-refresh')
     })
   })
 
   describe('findClipByHash', () => {
     it('finds a clip by hash and destination', async () => {
-      setupQuerySuccess([sampleClipRow])
-
       const db = await import('../db.js')
-      const clip = await db.findClipByHash(1, 'abc123def456', 'docs')
+      const user = db.createUser({
+        google_id: 'google-123',
+        email: 'user@example.com',
+        name: null,
+        avatar_url: null,
+        access_token: 'token',
+        refresh_token: null,
+        token_expires_at: null,
+      })
+
+      db.createClip({
+        user_id: user.id,
+        content_hash: 'abc123def456',
+        title: 'My Note',
+        destination: 'docs',
+        external_id: 'doc-id-123',
+        external_url: 'https://docs.google.com/document/d/doc-id-123',
+      })
+
+      const clip = db.findClipByHash(user.id, 'abc123def456', 'docs')
 
       expect(clip).toBeDefined()
       expect(clip!.content_hash).toBe('abc123def456')
@@ -178,10 +186,8 @@ describe('db', () => {
     })
 
     it('returns undefined when no duplicate exists', async () => {
-      setupQuerySuccess([])
-
       const db = await import('../db.js')
-      const clip = await db.findClipByHash(1, 'nonexistent-hash', 'drive')
+      const clip = db.findClipByHash(1, 'nonexistent-hash', 'drive')
 
       expect(clip).toBeUndefined()
     })
@@ -189,11 +195,19 @@ describe('db', () => {
 
   describe('createClip', () => {
     it('inserts a new clip and returns it', async () => {
-      setupQuerySuccess([sampleClipRow])
-
       const db = await import('../db.js')
-      const clip = await db.createClip({
-        user_id: 1,
+      const user = db.createUser({
+        google_id: 'google-123',
+        email: 'user@example.com',
+        name: null,
+        avatar_url: null,
+        access_token: 'token',
+        refresh_token: null,
+        token_expires_at: null,
+      })
+
+      const clip = db.createClip({
+        user_id: user.id,
         content_hash: 'abc123def456',
         title: 'My Note',
         destination: 'docs',
@@ -209,89 +223,168 @@ describe('db', () => {
 
   describe('getClipsByUserId', () => {
     it('returns paginated clips for a user', async () => {
-      const clips = [
-        { ...sampleClipRow, id: 3 },
-        { ...sampleClipRow, id: 2 },
-        { ...sampleClipRow, id: 1 },
-      ]
-      mockQuery
-        .mockResolvedValueOnce({ rows: clips })
-        .mockResolvedValueOnce({ rows: [{ count: 3 }] })
-
       const db = await import('../db.js')
-      const result = await db.getClipsByUserId(1, { limit: 10 })
+      const user = db.createUser({
+        google_id: 'google-123',
+        email: 'user@example.com',
+        name: null,
+        avatar_url: null,
+        access_token: 'token',
+        refresh_token: null,
+        token_expires_at: null,
+      })
+
+      for (let i = 1; i <= 3; i++) {
+        db.createClip({
+          user_id: user.id,
+          content_hash: `hash${i}`,
+          title: `Note ${i}`,
+          destination: 'docs',
+          external_id: null,
+          external_url: null,
+        })
+      }
+
+      const result = db.getClipsByUserId(user.id, { limit: 10 })
 
       expect(result.clips).toHaveLength(3)
       expect(result.total).toBe(3)
-      expect(result.nextCursor).toBe(1)
+      expect(result.nextCursor).toBe(result.clips[result.clips.length - 1].id)
     })
 
     it('filters by destination', async () => {
-      mockQuery
-        .mockResolvedValueOnce({ rows: [sampleClipRow] })
-        .mockResolvedValueOnce({ rows: [{ count: 1 }] })
-
       const db = await import('../db.js')
-      const result = await db.getClipsByUserId(1, {
-        limit: 20,
-        destination: 'docs',
+      const user = db.createUser({
+        google_id: 'google-123',
+        email: 'user@example.com',
+        name: null,
+        avatar_url: null,
+        access_token: 'token',
+        refresh_token: null,
+        token_expires_at: null,
       })
 
+      db.createClip({
+        user_id: user.id,
+        content_hash: 'hash1',
+        title: 'Doc',
+        destination: 'docs',
+        external_id: null,
+        external_url: null,
+      })
+      db.createClip({
+        user_id: user.id,
+        content_hash: 'hash2',
+        title: 'File',
+        destination: 'drive',
+        external_id: null,
+        external_url: null,
+      })
+
+      const result = db.getClipsByUserId(user.id, { destination: 'docs' })
+
       expect(result.clips).toHaveLength(1)
-      expect(mockQuery.mock.calls[0][0]).toContain('destination = ')
+      expect(result.clips[0].destination).toBe('docs')
     })
 
     it('filters by search', async () => {
-      mockQuery
-        .mockResolvedValueOnce({ rows: [sampleClipRow] })
-        .mockResolvedValueOnce({ rows: [{ count: 1 }] })
-
       const db = await import('../db.js')
-      const result = await db.getClipsByUserId(1, {
-        search: 'note',
+      const user = db.createUser({
+        google_id: 'google-123',
+        email: 'user@example.com',
+        name: null,
+        avatar_url: null,
+        access_token: 'token',
+        refresh_token: null,
+        token_expires_at: null,
       })
 
+      db.createClip({
+        user_id: user.id,
+        content_hash: 'hash1',
+        title: 'My Important Note',
+        destination: 'docs',
+        external_id: null,
+        external_url: null,
+      })
+      db.createClip({
+        user_id: user.id,
+        content_hash: 'hash2',
+        title: 'Random Stuff',
+        destination: 'docs',
+        external_id: null,
+        external_url: null,
+      })
+
+      const result = db.getClipsByUserId(user.id, { search: 'Important' })
+
       expect(result.clips).toHaveLength(1)
-      expect(mockQuery.mock.calls[0][0]).toContain('ILIKE')
+      expect(result.clips[0].title).toBe('My Important Note')
     })
 
     it('paginates with cursor', async () => {
-      const clips = [
-        { ...sampleClipRow, id: 5 },
-        { ...sampleClipRow, id: 4 },
-      ]
-      mockQuery
-        .mockResolvedValueOnce({ rows: clips })
-        .mockResolvedValueOnce({ rows: [{ count: 10 }] })
-
       const db = await import('../db.js')
-      const result = await db.getClipsByUserId(1, {
-        cursor: 10,
-        limit: 20,
+      const user = db.createUser({
+        google_id: 'google-123',
+        email: 'user@example.com',
+        name: null,
+        avatar_url: null,
+        access_token: 'token',
+        refresh_token: null,
+        token_expires_at: null,
+      })
+
+      const clipIds: number[] = []
+      for (let i = 1; i <= 5; i++) {
+        const clip = db.createClip({
+          user_id: user.id,
+          content_hash: `hash${i}`,
+          title: `Note ${i}`,
+          destination: 'docs',
+          external_id: null,
+          external_url: null,
+        })
+        clipIds.push(clip.id)
+      }
+
+      const result = db.getClipsByUserId(user.id, {
+        cursor: clipIds[2],
+        limit: 2,
       })
 
       expect(result.clips).toHaveLength(2)
-      expect(mockQuery.mock.calls[0][0]).toContain('id <')
+      expect(result.clips[0].id).toBeLessThan(clipIds[2])
     })
 
     it('clamps limit between 1 and 100', async () => {
-      mockQuery
-        .mockResolvedValueOnce({ rows: [sampleClipRow] })
-        .mockResolvedValueOnce({ rows: [{ count: 1 }] })
-
       const db = await import('../db.js')
-      const result = await db.getClipsByUserId(1, { limit: 999 })
+      const user = db.createUser({
+        google_id: 'google-123',
+        email: 'user@example.com',
+        name: null,
+        avatar_url: null,
+        access_token: 'token',
+        refresh_token: null,
+        token_expires_at: null,
+      })
+
+      db.createClip({
+        user_id: user.id,
+        content_hash: 'hash1',
+        title: 'Note',
+        destination: 'docs',
+        external_id: null,
+        external_url: null,
+      })
+
+      const result = db.getClipsByUserId(user.id, { limit: 999 })
 
       expect(result.clips).toHaveLength(1)
     })
 
     it('returns empty array for user with no clips', async () => {
-      mockQuery
-        .mockResolvedValueOnce({ rows: [] })
-        .mockResolvedValueOnce({ rows: [{ count: 0 }] })
-
       const db = await import('../db.js')
-      const result = await db.getClipsByUserId(1)
+      const result = db.getClipsByUserId(999)
 
       expect(result.clips).toHaveLength(0)
       expect(result.total).toBe(0)

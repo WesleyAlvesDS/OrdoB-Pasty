@@ -1,4 +1,6 @@
-import { Pool } from 'pg'
+import initSqlJs, { type Database } from 'sql.js'
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { dirname } from 'node:path'
 import { config } from './config.js'
 
 // ─── Types ────────────────────────────────────────────────────
@@ -33,102 +35,111 @@ export interface PaginatedClips {
   total: number
 }
 
-// ─── Pool (conexão gerenciada com PostgreSQL) ─────────────────
+// ─── Database (SQLite via sql.js) ─────────────────────────────
 
-let pool: Pool
+let db: Database
+let dbPath: string
 
-export function getPool(): Pool {
-  return pool
+export function getDb(): Database {
+  return db
 }
 
-/** Initialize the PostgreSQL connection pool and create tables if needed. */
-export async function initDatabase(): Promise<void> {
-  pool = new Pool({
-    connectionString: config.databaseUrl,
-    max: 20,                          // máximo de conexões simultâneas
-    idleTimeoutMillis: 30000,          // fecha conexões ociosas após 30s
-    connectionTimeoutMillis: 5000,     // timeout de conexão de 5s
-  })
+function saveDb(): void {
+  const data = db.export()
+  const buffer = Buffer.from(data)
+  writeFileSync(dbPath, buffer)
+}
 
-  // Testa a conexão
-  const client = await pool.connect()
-  try {
-    await client.query('SELECT 1')
-    console.log('🗄️  PostgreSQL connected')
-  } finally {
-    client.release()
+function queryOne<T>(sql: string, params: unknown[] = []): T | undefined {
+  const stmt = db.prepare(sql)
+  stmt.bind(params)
+  if (stmt.step()) {
+    const row = stmt.getAsObject() as Record<string, unknown>
+    stmt.free()
+    return row as unknown as T
+  }
+  stmt.free()
+  return undefined
+}
+
+function queryAll<T>(sql: string, params: unknown[] = []): T[] {
+  const stmt = db.prepare(sql)
+  stmt.bind(params)
+  const rows: T[] = []
+  while (stmt.step()) {
+    rows.push(stmt.getAsObject() as unknown as T)
+  }
+  stmt.free()
+  return rows
+}
+
+/** Initialize the SQLite database and create tables if needed. */
+export async function initDatabase(): Promise<void> {
+  const SQL = await initSqlJs()
+  dbPath = config.databasePath
+  mkdirSync(dirname(dbPath), { recursive: true })
+
+  if (existsSync(dbPath)) {
+    const fileBuffer = readFileSync(dbPath)
+    db = new SQL.Database(fileBuffer)
+  } else {
+    db = new SQL.Database()
   }
 
+  db.run('PRAGMA journal_mode = WAL')
+  db.run('PRAGMA foreign_keys = ON')
+
   // ─── Schema ──────────────────────────────────────────────
-  await pool.query(`
+  db.run(`
     CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       google_id TEXT UNIQUE NOT NULL,
       email TEXT NOT NULL,
       name TEXT,
       avatar_url TEXT,
       access_token TEXT,
       refresh_token TEXT,
-      token_expires_at TIMESTAMPTZ,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-
+      token_expires_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `)
+  db.run(`
     CREATE TABLE IF NOT EXISTS clips (
-      id SERIAL PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       content_hash TEXT NOT NULL,
       title TEXT,
       destination TEXT NOT NULL,
       external_id TEXT,
       external_url TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
   `)
 
   // ─── Indexes ─────────────────────────────────────────────
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS idx_clips_user_hash ON clips(user_id, content_hash);
-    CREATE INDEX IF NOT EXISTS idx_clips_user_id ON clips(user_id);
-    CREATE INDEX IF NOT EXISTS idx_clips_created ON clips(user_id, created_at DESC);
-    CREATE INDEX IF NOT EXISTS idx_clips_user_dest ON clips(user_id, destination);
-    CREATE INDEX IF NOT EXISTS idx_clips_user_title ON clips(user_id, title);
-    CREATE INDEX IF NOT EXISTS idx_users_google ON users(google_id);
-  `)
+  db.run('CREATE INDEX IF NOT EXISTS idx_clips_user_hash ON clips(user_id, content_hash)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_clips_user_id ON clips(user_id)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_clips_created ON clips(user_id, created_at DESC)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_clips_user_dest ON clips(user_id, destination)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_clips_user_title ON clips(user_id, title)')
+  db.run('CREATE INDEX IF NOT EXISTS idx_users_google ON users(google_id)')
 
-  console.log('📊 PostgreSQL schema ready')
-}
-
-// ─── Helpers ──────────────────────────────────────────────────
-
-function rowToNulls(row: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
-  if (!row) return undefined
-  return Object.fromEntries(
-    Object.entries(row).map(([k, v]) => [k, v ?? null]),
-  )
-}
-
-async function firstRow<T>(sql: string, params: unknown[] = []): Promise<T | undefined> {
-  const result = await pool.query(sql, params)
-  const row = result.rows[0] as Record<string, unknown> | undefined
-  return rowToNulls(row) as unknown as T | undefined
-}
-
-async function allRows<T>(sql: string, params: unknown[] = []): Promise<T[]> {
-  const result = await pool.query(sql, params)
-  return result.rows.map((row: Record<string, unknown>) => rowToNulls(row) as unknown as T)
+  saveDb()
+  console.log('🗄️  SQLite connected')
+  console.log('📊 SQLite schema ready')
 }
 
 // ─── User Queries ─────────────────────────────────────────────
 
-export async function findUserByGoogleId(googleId: string): Promise<DbUser | undefined> {
-  return firstRow<DbUser>('SELECT * FROM users WHERE google_id = $1', [googleId])
+export function findUserByGoogleId(googleId: string): DbUser | undefined {
+  return queryOne<DbUser>('SELECT * FROM users WHERE google_id = ?', [googleId])
 }
 
-export async function findUserById(id: number): Promise<DbUser | undefined> {
-  return firstRow<DbUser>('SELECT * FROM users WHERE id = $1', [id])
+export function findUserById(id: number): DbUser | undefined {
+  return queryOne<DbUser>('SELECT * FROM users WHERE id = ?', [id])
 }
 
-export async function createUser(user: {
+export function createUser(user: {
   google_id: string
   email: string
   name: string | null
@@ -136,11 +147,10 @@ export async function createUser(user: {
   access_token: string | null
   refresh_token: string | null
   token_expires_at: string | null
-}): Promise<DbUser> {
-  const result = await pool.query(
+}): DbUser {
+  db.run(
     `INSERT INTO users (google_id, email, name, avatar_url, access_token, refresh_token, token_expires_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING *`,
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       user.google_id,
       user.email,
@@ -151,46 +161,48 @@ export async function createUser(user: {
       user.token_expires_at,
     ],
   )
-  return rowToNulls(result.rows[0]) as unknown as DbUser
+  const id = db.exec('SELECT last_insert_rowid() as id')[0]?.values[0][0] as number
+  saveDb()
+  return findUserById(id)!
 }
 
-export async function updateUserTokens(
+export function updateUserTokens(
   userId: number,
   accessToken: string,
   refreshToken: string | null,
   expiresAt: string | null,
-): Promise<void> {
-  await pool.query(
-    `UPDATE users SET access_token = $1, refresh_token = COALESCE($2, refresh_token), token_expires_at = $3 WHERE id = $4`,
+): void {
+  db.run(
+    `UPDATE users SET access_token = ?, refresh_token = COALESCE(?, refresh_token), token_expires_at = ? WHERE id = ?`,
     [accessToken, refreshToken, expiresAt, userId],
   )
+  saveDb()
 }
 
 // ─── Clip Queries ─────────────────────────────────────────────
 
-export async function findClipByHash(
+export function findClipByHash(
   userId: number,
   contentHash: string,
   destination: string,
-): Promise<DbClip | undefined> {
-  return firstRow<DbClip>(
-    'SELECT * FROM clips WHERE user_id = $1 AND content_hash = $2 AND destination = $3',
+): DbClip | undefined {
+  return queryOne<DbClip>(
+    'SELECT * FROM clips WHERE user_id = ? AND content_hash = ? AND destination = ?',
     [userId, contentHash, destination],
   )
 }
 
-export async function createClip(clip: {
+export function createClip(clip: {
   user_id: number
   content_hash: string
   title: string | null
   destination: string
   external_id: string | null
   external_url: string | null
-}): Promise<DbClip> {
-  const result = await pool.query(
+}): DbClip {
+  db.run(
     `INSERT INTO clips (user_id, content_hash, title, destination, external_id, external_url)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     RETURNING *`,
+     VALUES (?, ?, ?, ?, ?, ?)`,
     [
       clip.user_id,
       clip.content_hash,
@@ -200,16 +212,18 @@ export async function createClip(clip: {
       clip.external_url,
     ],
   )
-  return rowToNulls(result.rows[0]) as unknown as DbClip
+  const id = db.exec('SELECT last_insert_rowid() as id')[0]?.values[0][0] as number
+  saveDb()
+  return queryOne<DbClip>('SELECT * FROM clips WHERE id = ?', [id])!
 }
 
 /**
  * Busca o histórico do usuário com paginação por cursor e filtros.
  *
- * Paginação por cursor (WHERE id < $cursor) é O(log n) vs OFFSET que é O(n),
+ * Paginação por cursor (WHERE id < ?cursor) é O(log n) vs OFFSET que é O(n),
  * essencial para performance com milhões de registros.
  */
-export async function getClipsByUserId(
+export function getClipsByUserId(
   userId: number,
   options: {
     cursor?: number | null
@@ -217,50 +231,48 @@ export async function getClipsByUserId(
     destination?: string | null
     search?: string | null
   } = {},
-): Promise<PaginatedClips> {
+): PaginatedClips {
   const { cursor, limit = 20, destination, search } = options
   const clampedLimit = Math.min(Math.max(1, limit), 100)
 
-  const conditions: string[] = ['user_id = $1']
+  const conditions: string[] = ['user_id = ?']
   const params: unknown[] = [userId]
-  let paramIndex = 2
 
   if (cursor) {
-    conditions.push(`id < $${paramIndex++}`)
+    conditions.push('id < ?')
     params.push(cursor)
   }
 
   if (destination) {
-    conditions.push(`destination = $${paramIndex++}`)
+    conditions.push('destination = ?')
     params.push(destination)
   }
 
   if (search) {
-    conditions.push(`title ILIKE $${paramIndex++}`)
+    conditions.push('title LIKE ?')
     params.push(`%${search}%`)
   }
 
   const whereClause = conditions.join(' AND ')
 
   // Busca clips (+1 para detectar próxima página)
-  const clipsResult = await pool.query(
-    `SELECT * FROM clips WHERE ${whereClause} ORDER BY created_at DESC, id DESC LIMIT $${paramIndex}`,
+  const clips = queryAll<DbClip>(
+    `SELECT * FROM clips WHERE ${whereClause} ORDER BY created_at DESC, id DESC LIMIT ?`,
     [...params, clampedLimit + 1],
   )
-  const clips = clipsResult.rows.map((r: Record<string, unknown>) => rowToNulls(r) as unknown as DbClip)
 
   const hasMore = clips.length > clampedLimit
   if (hasMore) clips.pop()
 
   // Total de registros do usuário
-  const totalResult = await pool.query(
-    'SELECT COUNT(*)::int as count FROM clips WHERE user_id = $1',
+  const totalRow = queryOne<{ count: number }>(
+    'SELECT COUNT(*) as count FROM clips WHERE user_id = ?',
     [userId],
   )
 
   return {
     clips,
     nextCursor: clips.length > 0 ? clips[clips.length - 1].id : null,
-    total: (totalResult.rows[0] as { count: number }).count,
+    total: totalRow?.count ?? 0,
   }
 }

@@ -50,7 +50,7 @@ export function Footer() {
                 <span className="flex h-3 w-3 items-center justify-center rounded-full bg-[#FE5416]">
                   <span className="h-1.5 w-1.5 rounded-full bg-white" />
                 </span>
-                Desenvolvido pela OrdoB
+                Desenvolvido pela OrdoB™
               </a>
             </div>
           </div>
@@ -111,7 +111,7 @@ export function Footer() {
                   <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#FE5416] flex-shrink-0">
                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                   </span>
-                  <span className="group-hover:translate-x-0.5 transition-transform">OrdoB Matriz</span>
+                  <span className="group-hover:translate-x-0.5 transition-transform">OrdoB™ Matriz</span>
                 </a>
               </li>
               <li>
@@ -131,7 +131,7 @@ export function Footer() {
                   className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200 inline-flex items-center gap-2 group"
                 >
                   <span className="text-base" aria-hidden="true">🏢</span>
-                  OrdoB Tecnologia
+                  OrdoB™ Tecnologia
                 </a>
               </li>
             </ul>
@@ -151,14 +151,14 @@ export function Footer() {
                 <span className="h-2 w-2 rounded-full bg-white" />
               </span>
               <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 group-hover:text-[#FE5416] transition-colors">
-                OrdoB
+                OrdoB™
               </span>
             </span>
             <span className="text-[10px] text-gray-400 dark:text-gray-500">×</span>
             <span className="text-xs font-medium text-violet-600 dark:text-violet-400">
               Pasty
             </span>
-            <span className="text-[9px] text-gray-400 dark:text-gray-500 hidden sm:inline">| Desenvolvido pela OrdoB</span>
+            <span className="text-[9px] text-gray-400 dark:text-gray-500 hidden sm:inline">| Desenvolvido pela OrdoB™</span>
             <svg className="w-3 h-3 text-gray-400 dark:text-gray-500 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
@@ -170,13 +170,13 @@ export function Footer() {
           <p className="text-xs text-gray-400 dark:text-gray-600">
             &copy; {currentYear} Pasty. Feito com 💜 pela{' '}
             <a href="https://ordob.com" target="_blank" rel="noopener noreferrer" className="text-[#FE5416] hover:text-[#E04A12] transition-colors font-medium">
-              OrdoB Tecnologia
+              OrdoB™ Tecnologia
             </a>
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500">
             Um produto do{' '}
             <a href="https://ordob.com" target="_blank" rel="noopener noreferrer" className="text-violet-500 hover:text-violet-400 transition-colors">
-              ecossistema OrdoB
+              ecossistema OrdoB™
             </a>
           </p>
         </div>

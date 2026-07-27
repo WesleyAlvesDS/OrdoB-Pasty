@@ -41,7 +41,15 @@ app.use('*', logger())
 app.use(
   '*',
   cors({
-    origin: [config.frontendUrl, 'http://localhost:5173', 'http://localhost:4173'],
+    origin: [
+      config.frontendUrl,
+      'http://localhost:5173',
+      'http://localhost:4173',
+      // Produção — subdomínios do ecossistema OrdoB
+      'https://pasty.ordob.com',
+      'https://ordob.com',
+      'https://www.ordob.com',
+    ],
     credentials: true,
   }),
 )
@@ -277,8 +285,8 @@ app.get('/api/history', authMiddleware, async (c) => {
 
 // Initialize database before starting server
 import('./db.js')
-  .then(async ({ initDatabase }) => {
-    await initDatabase()
+  .then(({ initDatabase }) => {
+    initDatabase()
     console.log('📦 Database initialized')
 
     serve({

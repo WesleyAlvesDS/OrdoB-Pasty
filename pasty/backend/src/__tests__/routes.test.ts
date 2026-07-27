@@ -51,7 +51,6 @@ vi.mock('../db.js', () => ({
     total: 1,
   })),
   initDatabase: vi.fn(async () => {}),
-  getPool: vi.fn(),
 }))
 
 // ─── Mock auth module ─────────────────────────────────────────

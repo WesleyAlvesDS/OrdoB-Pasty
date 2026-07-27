@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useState, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { User, DestinationInfo, Clip, Destination } from '../types'
-import { getGoogleAuthUrl, saveText } from '../api'
+import { getGoogleAuthUrl, saveText, getStoredToken } from '../api'
 import { useSaveForm } from '../hooks/useSaveForm'
 import { Header } from '../components/Header'
 import { SEO } from '../components/SEO'
@@ -72,7 +72,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
   const [pendingResult, setPendingResult] = useState<PendingResult | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
-  const [logingOut, setLogingOut] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
   const [authLoading, setAuthLoading] = useState(false)
 
   const {
@@ -109,7 +109,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
           const pending: PendingSave = JSON.parse(raw)
           if (!pending.text?.trim()) return
 
-          const savedToken = localStorage.getItem('utc_token')
+          const savedToken = getStoredToken()
           if (!savedToken) return
 
           try {
@@ -167,11 +167,11 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
   }, [])
 
   const confirmLogout = useCallback(() => {
-    setLogingOut(true)
+    setLoggingOut(true)
     setTimeout(() => {
       onLogout()
       setShowLogoutConfirm(false)
-      setLogingOut(false)
+      setLoggingOut(false)
       navigate('/', { replace: true })
       toast.info('Até logo!', 'Você saiu da sua conta.')
     }, 300)
@@ -417,7 +417,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
         open={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={confirmLogout}
-        loading={logingOut}
+        loading={loggingOut}
       />
 
       <Footer />
