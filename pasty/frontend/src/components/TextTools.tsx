@@ -45,7 +45,7 @@ export function TextTools({ text, title, onTextChange, onTitleChange }: TextTool
   return (
     <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden animate-scale-in">
       {/* Tab Navigation */}
-      <div className="flex flex-wrap border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+      <div className="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id
           return (
@@ -53,13 +53,13 @@ export function TextTools({ text, title, onTextChange, onTitleChange }: TextTool
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-3 text-xs font-medium whitespace-nowrap transition-all duration-200 border-b-2 cursor-pointer ${
+              className={`flex-1 flex items-center justify-center gap-1 px-2 py-2.5 text-[11px] font-medium whitespace-nowrap transition-all duration-200 border-b-2 cursor-pointer ${
                 isActive
                   ? 'border-violet-500 text-violet-700 dark:text-violet-300 bg-white dark:bg-gray-900'
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50'
               }`}
             >
-              <span className="text-sm">{tab.icon}</span>
+              <span className="text-xs">{tab.icon}</span>
               {tab.label}
             </button>
           )
