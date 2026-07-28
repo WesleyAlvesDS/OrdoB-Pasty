@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { TextStats } from './TextStats'
 import { TextCleanup } from './TextCleanup'
 import { TextExport } from './TextExport'
@@ -12,19 +12,7 @@ interface TextToolsProps {
   onTitleChange: (title: string) => void
 }
 
-const TABS = [
-  { id: 'stats', label: 'Estatísticas', icon: '📊', Component: TextStats },
-  { id: 'tools', label: 'Limpeza', icon: '🧹', Component: TextCleanup },
-  { id: 'export', label: 'Exportar', icon: '📥', Component: TextExport },
-  { id: 'detect', label: 'Detectar', icon: '🔍', Component: TextDetect },
-  { id: 'templates', label: 'Modelos', icon: '📋', Component: TextTemplates },
-] as const
-
-type TabId = (typeof TABS)[number]['id']
-
 export function TextTools({ text, title, onTextChange, onTitleChange }: TextToolsProps) {
-  const [activeTab, setActiveTab] = useState<TabId>('stats')
-
   // Detect pastebin shared link on mount
   useEffect(() => {
     const hash = window.location.hash
@@ -43,56 +31,60 @@ export function TextTools({ text, title, onTextChange, onTitleChange }: TextTool
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden animate-scale-in">
-      {/* Tab Navigation */}
-      <div className="flex border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
-        {TABS.map((tab) => {
-          const isActive = activeTab === tab.id
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-1 px-2 py-2.5 text-[11px] font-medium whitespace-nowrap transition-all duration-200 border-b-2 cursor-pointer ${
-                isActive
-                  ? 'border-violet-500 text-violet-700 dark:text-violet-300 bg-white dark:bg-gray-900'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50'
-              }`}
-            >
-              <span className="text-xs">{tab.icon}</span>
-              {tab.label}
-            </button>
-          )
-        })}
+    <div className="space-y-4 animate-scale-in">
+      {/* Estatísticas */}
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+        <div className="px-4 py-2.5 flex items-center gap-2 bg-gradient-to-r from-violet-500 to-purple-600">
+          <span className="text-sm">📊</span>
+          <span className="text-xs font-semibold text-white">Estatísticas</span>
+        </div>
+        <div className="p-4">
+          <TextStats text={text} />
+        </div>
       </div>
 
-      {/* Tab Content */}
-      <div className="p-4">
-        {activeTab === 'stats' && (
-          <div className="animate-fade-in" key="stats">
-            <TextStats text={text} />
-          </div>
-        )}
-        {activeTab === 'tools' && (
-          <div className="animate-fade-in" key="tools">
-            <TextCleanup text={text} onTextChange={onTextChange} />
-          </div>
-        )}
-        {activeTab === 'export' && (
-          <div className="animate-fade-in" key="export">
-            <TextExport text={text} title={title} />
-          </div>
-        )}
-        {activeTab === 'detect' && (
-          <div className="animate-fade-in" key="detect">
-            <TextDetect text={text} />
-          </div>
-        )}
-        {activeTab === 'templates' && (
-          <div className="animate-fade-in" key="templates">
-            <TextTemplates text={text} onTextChange={onTextChange} onTitleChange={onTitleChange} />
-          </div>
-        )}
+      {/* Limpeza */}
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+        <div className="px-4 py-2.5 flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600">
+          <span className="text-sm">🧹</span>
+          <span className="text-xs font-semibold text-white">Limpeza</span>
+        </div>
+        <div className="p-4">
+          <TextCleanup text={text} onTextChange={onTextChange} />
+        </div>
+      </div>
+
+      {/* Exportar */}
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+        <div className="px-4 py-2.5 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600">
+          <span className="text-sm">📥</span>
+          <span className="text-xs font-semibold text-white">Exportar</span>
+        </div>
+        <div className="p-4">
+          <TextExport text={text} title={title} />
+        </div>
+      </div>
+
+      {/* Detectar */}
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+        <div className="px-4 py-2.5 flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600">
+          <span className="text-sm">🔍</span>
+          <span className="text-xs font-semibold text-white">Detectar</span>
+        </div>
+        <div className="p-4">
+          <TextDetect text={text} />
+        </div>
+      </div>
+
+      {/* Modelos */}
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+        <div className="px-4 py-2.5 flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-600">
+          <span className="text-sm">📋</span>
+          <span className="text-xs font-semibold text-white">Modelos</span>
+        </div>
+        <div className="p-4">
+          <TextTemplates text={text} onTextChange={onTextChange} onTitleChange={onTitleChange} />
+        </div>
       </div>
     </div>
   )
