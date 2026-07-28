@@ -199,6 +199,8 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
       <Header
         user={isAuthenticated ? user : null}
         onLogout={handleLogoutClick}
+        onLogin={handleLogin}
+        authLoading={authLoading}
       />
 
       <main id="main-content" className="flex-1 w-full max-w-6xl mx-auto px-4 py-8">
