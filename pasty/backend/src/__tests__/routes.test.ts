@@ -55,10 +55,15 @@ vi.mock('../db.js', () => ({
 
 // ─── Mock auth module ─────────────────────────────────────────
 
+const testState = 'test-state-123'
+
 vi.mock('../auth.js', () => ({
   getGoogleAuthUrl: vi.fn(
-    () => 'https://accounts.google.com/o/oauth2/v2/auth?client_id=test',
+    (state?: string) =>
+      `https://accounts.google.com/o/oauth2/v2/auth?state=${state ?? 'none'}&client_id=test`,
   ),
+  generateState: vi.fn(() => testState),
+  validateState: vi.fn((state: string) => state === testState),
   exchangeCodeForToken: vi.fn(async (code: string) => {
     if (code === 'valid-code') {
       return {
@@ -132,23 +137,25 @@ describe('API Routes', () => {
   })
 
   describe('GET /api/auth/google/login', () => {
-    it('returns auth URL', async () => {
+    it('returns auth URL with state', async () => {
       const { app } = await import('../index.js')
       const res = await app.request('/api/auth/google/login')
 
       expect(res.status).toBe(200)
       const body = await res.json()
       expect(body.auth_url).toContain('accounts.google.com')
+      expect(body.auth_url).toContain('state=')
+      expect(body.state).toBe(testState)
     })
   })
 
   describe('POST /api/auth/callback', () => {
-    it('authenticates user with valid code', async () => {
+    it('authenticates user with valid code and state', async () => {
       const { app } = await import('../index.js')
       const res = await app.request('/api/auth/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: 'valid-code' }),
+        body: JSON.stringify({ code: 'valid-code', state: testState }),
       })
 
       expect(res.status).toBe(200)
@@ -158,12 +165,38 @@ describe('API Routes', () => {
       expect(body.user.email).toBe('user@example.com')
     })
 
+    it('returns 400 when state is missing', async () => {
+      const { app } = await import('../index.js')
+      const res = await app.request('/api/auth/callback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: 'valid-code' }),
+      })
+
+      expect(res.status).toBe(400)
+      const body = await res.json()
+      expect(body.error).toContain('segurança')
+    })
+
+    it('returns 400 when state is invalid', async () => {
+      const { app } = await import('../index.js')
+      const res = await app.request('/api/auth/callback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: 'valid-code', state: 'wrong-state' }),
+      })
+
+      expect(res.status).toBe(400)
+      const body = await res.json()
+      expect(body.error).toContain('segurança')
+    })
+
     it('returns 400 for invalid code', async () => {
       const { app } = await import('../index.js')
       const res = await app.request('/api/auth/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: 'bad-code' }),
+        body: JSON.stringify({ code: 'bad-code', state: testState }),
       })
 
       expect(res.status).toBe(400)
@@ -176,7 +209,7 @@ describe('API Routes', () => {
       const res = await app.request('/api/auth/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ state: testState }),
       })
 
       expect(res.status).toBe(400)
