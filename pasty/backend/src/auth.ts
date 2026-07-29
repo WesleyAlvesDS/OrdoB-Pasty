@@ -1,7 +1,45 @@
+import crypto from 'node:crypto'
 import { config } from './config.js'
 
-/** Build the Google OAuth authorization URL. */
-export function getGoogleAuthUrl(): string {
+// ─── CSRF State Store (in-memory com expiração) ────────────
+
+interface StoredState {
+  state: string
+  expiresAt: number
+}
+
+const stateStore = new Map<string, StoredState>()
+const STATE_TTL_MS = 10 * 60 * 1000 // 10 minutos
+
+// Limpeza periódica de states expirados
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, value] of stateStore) {
+    if (value.expiresAt <= now) stateStore.delete(key)
+  }
+}, 60_000)
+
+/** Generate a random state token for CSRF protection and store it. */
+export function generateState(): string {
+  const state = crypto.randomUUID()
+  stateStore.set(state, { state, expiresAt: Date.now() + STATE_TTL_MS })
+  return state
+}
+
+/** Validate that a state token exists and hasn't expired. */
+export function validateState(state: string): boolean {
+  const stored = stateStore.get(state)
+  if (!stored) return false
+  if (stored.expiresAt <= Date.now()) {
+    stateStore.delete(state)
+    return false
+  }
+  stateStore.delete(state) // Consume (one-time use)
+  return true
+}
+
+/** Build the Google OAuth authorization URL with CSRF state. */
+export function getGoogleAuthUrl(state?: string): string {
   const params = new URLSearchParams({
     client_id: config.googleClientId,
     redirect_uri: config.googleRedirectUri,
@@ -10,6 +48,11 @@ export function getGoogleAuthUrl(): string {
     access_type: 'offline',
     prompt: 'consent',
   })
+
+  if (state) {
+    params.set('state', state)
+  }
+
   return `${config.googleAuthUri}?${params.toString()}`
 }
 

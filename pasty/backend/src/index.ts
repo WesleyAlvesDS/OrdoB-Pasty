@@ -13,6 +13,8 @@ import {
   exchangeCodeForToken,
   getUserInfo,
   refreshAccessToken,
+  generateState,
+  validateState,
 } from './auth.js'
 import {
   findUserByGoogleId,
@@ -72,14 +74,22 @@ app.get('/api/health', (c) => c.json({ status: 'ok', version: '1.0.0' }))
 // ─── Auth Routes ───────────────────────────────────────────────
 
 app.get('/api/auth/google/login', (c) => {
-  return c.json({ auth_url: getGoogleAuthUrl() })
+  const state = generateState()
+  const authUrl = getGoogleAuthUrl(state)
+  return c.json({ auth_url: authUrl, state })
 })
 
 app.post('/api/auth/callback', async (c) => {
   try {
-    const { code } = await c.req.json<{ code: string }>()
+    const { code, state } = await c.req.json<{ code: string; state?: string }>()
     if (!code || typeof code !== 'string') {
       return c.json({ error: 'Código de autorização é obrigatório' }, 400)
+    }
+
+    // Validate state (CSRF protection)
+    if (!state || !validateState(state)) {
+      console.error('CSRF: invalid or missing state parameter in OAuth callback')
+      return c.json({ error: 'Parâmetro de segurança inválido. Tente novamente.' }, 400)
     }
     const tokens = await exchangeCodeForToken(code)
     const googleUser = await getUserInfo(tokens.access_token)
