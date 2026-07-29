@@ -15,8 +15,8 @@
     "dotenv": "^17.4.2",
     "hono": "^4.12.29",
     "ioredis": "^5.11.1",
-    "rate-limiter-flexible": "^11.2.0",
-    "sql.js": "^1.11.0"
+    "mysql2": "^3.23.2",
+    "rate-limiter-flexible": "^11.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

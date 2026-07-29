@@ -15,5 +15,5 @@
     "sourceMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/migrate.ts"]
+  "exclude": ["node_modules", "dist", "src/migrate.ts", "src/__tests__"]
 }

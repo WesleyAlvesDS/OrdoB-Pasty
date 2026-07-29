@@ -24,8 +24,18 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET ?? 'change-me-in-production',
   jwtExpiryHours: 24,
 
-  // SQLite
-  databasePath: process.env.DATABASE_PATH ?? './data/pasty.db',
+  // MySQL Database
+  db: {
+    host: process.env.DB_HOST ?? 'localhost',
+    port: parseInt(process.env.DB_PORT ?? '3306', 10),
+    user: process.env.DB_USER ?? 'arti3263_pasty',
+    password: process.env.DB_PASSWORD ?? 'Pasty2026OrdoB',
+    database: process.env.DB_DATABASE ?? 'arti3263_pasty',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    charset: 'utf8mb4',
+  },
 
   // Frontend
   frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:5173',

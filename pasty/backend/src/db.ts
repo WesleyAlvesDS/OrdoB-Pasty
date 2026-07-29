@@ -1,6 +1,4 @@
-import initSqlJs, { type Database } from 'sql.js'
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
-import { dirname } from 'node:path'
+import mysql from 'mysql2/promise'
 import { config } from './config.js'
 
 // ─── Types ────────────────────────────────────────────────────
@@ -35,111 +33,112 @@ export interface PaginatedClips {
   total: number
 }
 
-// ─── Database (SQLite via sql.js) ─────────────────────────────
+// ─── Database (MySQL via mysql2) ───────────────────────────────
 
-let db: Database
-let dbPath: string
+let pool: mysql.Pool
 
-export function getDb(): Database {
-  return db
+export function getPool(): mysql.Pool {
+  return pool
 }
 
-function saveDb(): void {
-  const data = db.export()
-  const buffer = Buffer.from(data)
-  writeFileSync(dbPath, buffer)
-}
-
-function queryOne<T>(sql: string, params: unknown[] = []): T | undefined {
-  const stmt = db.prepare(sql)
-  stmt.bind(params)
-  if (stmt.step()) {
-    const row = stmt.getAsObject() as Record<string, unknown>
-    stmt.free()
-    return row as unknown as T
+function rowToUser(row: Record<string, unknown>): DbUser {
+  return {
+    id: row.id as number,
+    google_id: row.google_id as string,
+    email: row.email as string,
+    name: row.name as string | null,
+    avatar_url: row.avatar_url as string | null,
+    access_token: row.access_token as string | null,
+    refresh_token: row.refresh_token as string | null,
+    token_expires_at: row.token_expires_at as string | null,
+    created_at: row.created_at as string,
   }
-  stmt.free()
-  return undefined
 }
 
-function queryAll<T>(sql: string, params: unknown[] = []): T[] {
-  const stmt = db.prepare(sql)
-  stmt.bind(params)
-  const rows: T[] = []
-  while (stmt.step()) {
-    rows.push(stmt.getAsObject() as unknown as T)
+function rowToClip(row: Record<string, unknown>): DbClip {
+  return {
+    id: row.id as number,
+    user_id: row.user_id as number,
+    content_hash: row.content_hash as string,
+    title: row.title as string | null,
+    destination: row.destination as string,
+    external_id: row.external_id as string | null,
+    external_url: row.external_url as string | null,
+    created_at: row.created_at as string,
   }
-  stmt.free()
-  return rows
 }
 
-/** Initialize the SQLite database and create tables if needed. */
+/** Initialize the MySQL connection pool and create tables if needed. */
 export async function initDatabase(): Promise<void> {
-  const SQL = await initSqlJs()
-  dbPath = config.databasePath
-  mkdirSync(dirname(dbPath), { recursive: true })
+  pool = mysql.createPool(config.db)
 
-  if (existsSync(dbPath)) {
-    const fileBuffer = readFileSync(dbPath)
-    db = new SQL.Database(fileBuffer)
-  } else {
-    db = new SQL.Database()
+  // Test connection
+  const conn = await pool.getConnection()
+  try {
+    await conn.ping()
+    console.log('🗄️  MySQL connected')
+  } finally {
+    conn.release()
   }
-
-  db.run('PRAGMA journal_mode = WAL')
-  db.run('PRAGMA foreign_keys = ON')
 
   // ─── Schema ──────────────────────────────────────────────
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      google_id TEXT UNIQUE NOT NULL,
-      email TEXT NOT NULL,
-      name TEXT,
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      google_id VARCHAR(255) UNIQUE NOT NULL,
+      email VARCHAR(255) NOT NULL,
+      name VARCHAR(255),
       avatar_url TEXT,
       access_token TEXT,
       refresh_token TEXT,
-      token_expires_at TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      token_expires_at DATETIME,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `)
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS clips (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      content_hash TEXT NOT NULL,
-      title TEXT,
-      destination TEXT NOT NULL,
-      external_id TEXT,
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      content_hash VARCHAR(64) NOT NULL,
+      title VARCHAR(255),
+      destination VARCHAR(50) NOT NULL,
+      external_id VARCHAR(255),
       external_url TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `)
 
   // ─── Indexes ─────────────────────────────────────────────
-  db.run('CREATE INDEX IF NOT EXISTS idx_clips_user_hash ON clips(user_id, content_hash)')
-  db.run('CREATE INDEX IF NOT EXISTS idx_clips_user_id ON clips(user_id)')
-  db.run('CREATE INDEX IF NOT EXISTS idx_clips_created ON clips(user_id, created_at DESC)')
-  db.run('CREATE INDEX IF NOT EXISTS idx_clips_user_dest ON clips(user_id, destination)')
-  db.run('CREATE INDEX IF NOT EXISTS idx_clips_user_title ON clips(user_id, title)')
-  db.run('CREATE INDEX IF NOT EXISTS idx_users_google ON users(google_id)')
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_user_hash ON clips(user_id, content_hash)')
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_user_id ON clips(user_id)')
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_created ON clips(user_id, created_at DESC)')
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_user_dest ON clips(user_id, destination)')
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_user_title ON clips(user_id, title)')
+  await pool.query('CREATE INDEX IF NOT EXISTS idx_users_google ON users(google_id)')
 
-  saveDb()
-  console.log('🗄️  SQLite connected')
-  console.log('📊 SQLite schema ready')
+  console.log('📊 MySQL schema ready')
 }
 
 // ─── User Queries ─────────────────────────────────────────────
 
-export function findUserByGoogleId(googleId: string): DbUser | undefined {
-  return queryOne<DbUser>('SELECT * FROM users WHERE google_id = ?', [googleId])
+export async function findUserByGoogleId(googleId: string): Promise<DbUser | undefined> {
+  const [rows] = await pool.query<mysql.RowDataPacket[]>(
+    'SELECT * FROM users WHERE google_id = ?',
+    [googleId],
+  )
+  return rows.length > 0 ? rowToUser(rows[0] as Record<string, unknown>) : undefined
 }
 
-export function findUserById(id: number): DbUser | undefined {
-  return queryOne<DbUser>('SELECT * FROM users WHERE id = ?', [id])
+export async function findUserById(id: number): Promise<DbUser | undefined> {
+  const [rows] = await pool.query<mysql.RowDataPacket[]>(
+    'SELECT * FROM users WHERE id = ?',
+    [id],
+  )
+  return rows.length > 0 ? rowToUser(rows[0] as Record<string, unknown>) : undefined
 }
 
-export function createUser(user: {
+export async function createUser(user: {
   google_id: string
   email: string
   name: string | null
@@ -147,8 +146,8 @@ export function createUser(user: {
   access_token: string | null
   refresh_token: string | null
   token_expires_at: string | null
-}): DbUser {
-  db.run(
+}): Promise<DbUser> {
+  const [result] = await pool.query<mysql.ResultSetHeader>(
     `INSERT INTO users (google_id, email, name, avatar_url, access_token, refresh_token, token_expires_at)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -161,48 +160,46 @@ export function createUser(user: {
       user.token_expires_at,
     ],
   )
-  const id = db.exec('SELECT last_insert_rowid() as id')[0]?.values[0][0] as number
-  saveDb()
-  const created = findUserById(id)
+  const created = await findUserById(result.insertId)
   if (!created) throw new Error('Falha ao criar usuário — registro não encontrado após insert')
   return created
 }
 
-export function updateUserTokens(
+export async function updateUserTokens(
   userId: number,
   accessToken: string,
   refreshToken: string | null,
   expiresAt: string | null,
-): void {
-  db.run(
+): Promise<void> {
+  await pool.query(
     `UPDATE users SET access_token = ?, refresh_token = COALESCE(?, refresh_token), token_expires_at = ? WHERE id = ?`,
     [accessToken, refreshToken, expiresAt, userId],
   )
-  saveDb()
 }
 
 // ─── Clip Queries ─────────────────────────────────────────────
 
-export function findClipByHash(
+export async function findClipByHash(
   userId: number,
   contentHash: string,
   destination: string,
-): DbClip | undefined {
-  return queryOne<DbClip>(
+): Promise<DbClip | undefined> {
+  const [rows] = await pool.query<mysql.RowDataPacket[]>(
     'SELECT * FROM clips WHERE user_id = ? AND content_hash = ? AND destination = ?',
     [userId, contentHash, destination],
   )
+  return rows.length > 0 ? rowToClip(rows[0] as Record<string, unknown>) : undefined
 }
 
-export function createClip(clip: {
+export async function createClip(clip: {
   user_id: number
   content_hash: string
   title: string | null
   destination: string
   external_id: string | null
   external_url: string | null
-}): DbClip {
-  db.run(
+}): Promise<DbClip> {
+  const [result] = await pool.query<mysql.ResultSetHeader>(
     `INSERT INTO clips (user_id, content_hash, title, destination, external_id, external_url)
      VALUES (?, ?, ?, ?, ?, ?)`,
     [
@@ -214,11 +211,13 @@ export function createClip(clip: {
       clip.external_url,
     ],
   )
-  const id = db.exec('SELECT last_insert_rowid() as id')[0]?.values[0][0] as number
-  saveDb()
-  const created = queryOne<DbClip>('SELECT * FROM clips WHERE id = ?', [id])
-  if (!created) throw new Error('Falha ao criar clip — registro não encontrado após insert')
-  return created
+  const created = await pool.query<mysql.RowDataPacket[]>(
+    'SELECT * FROM clips WHERE id = ?',
+    [result.insertId],
+  )
+  const rows = created[0]
+  if (rows.length === 0) throw new Error('Falha ao criar clip — registro não encontrado após insert')
+  return rowToClip(rows[0] as Record<string, unknown>)
 }
 
 /**
@@ -227,7 +226,7 @@ export function createClip(clip: {
  * Paginação por cursor (WHERE id < ?cursor) é O(log n) vs OFFSET que é O(n),
  * essencial para performance com milhões de registros.
  */
-export function getClipsByUserId(
+export async function getClipsByUserId(
   userId: number,
   options: {
     cursor?: number | null
@@ -235,7 +234,7 @@ export function getClipsByUserId(
     destination?: string | null
     search?: string | null
   } = {},
-): PaginatedClips {
+): Promise<PaginatedClips> {
   const { cursor, limit = 20, destination, search } = options
   const clampedLimit = Math.min(Math.max(1, limit), 100)
 
@@ -260,16 +259,18 @@ export function getClipsByUserId(
   const whereClause = conditions.join(' AND ')
 
   // Busca clips (+1 para detectar próxima página)
-  const clips = queryAll<DbClip>(
+  const [rows] = await pool.query<mysql.RowDataPacket[]>(
     `SELECT * FROM clips WHERE ${whereClause} ORDER BY created_at DESC, id DESC LIMIT ?`,
     [...params, clampedLimit + 1],
   )
+
+  const clips = rows.map((r) => rowToClip(r as Record<string, unknown>))
 
   const hasMore = clips.length > clampedLimit
   if (hasMore) clips.pop()
 
   // Total de registros do usuário
-  const totalRow = queryOne<{ count: number }>(
+  const [countRows] = await pool.query<mysql.RowDataPacket[]>(
     'SELECT COUNT(*) as count FROM clips WHERE user_id = ?',
     [userId],
   )
@@ -277,6 +278,6 @@ export function getClipsByUserId(
   return {
     clips,
     nextCursor: clips.length > 0 ? clips[clips.length - 1].id : null,
-    total: totalRow?.count ?? 0,
+    total: (countRows[0] as Record<string, unknown>).count as number,
   }
 }
