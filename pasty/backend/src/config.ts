@@ -44,5 +44,8 @@ export const config = {
   ordobProductSlug: process.env.ORDOB_PRODUCT_SLUG ?? 'pasty',
 
   // Server
-  port: parseInt(process.env.PORT ?? '8000', 10),
+  port: (() => {
+    const p = parseInt(process.env.PORT ?? '8000', 10)
+    return Number.isFinite(p) && p > 0 && p < 65536 ? p : 8000
+  })(),
 }

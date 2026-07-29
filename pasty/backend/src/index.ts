@@ -78,6 +78,9 @@ app.get('/api/auth/google/login', (c) => {
 app.post('/api/auth/callback', async (c) => {
   try {
     const { code } = await c.req.json<{ code: string }>()
+    if (!code || typeof code !== 'string') {
+      return c.json({ error: 'Código de autorização é obrigatório' }, 400)
+    }
     const tokens = await exchangeCodeForToken(code)
     const googleUser = await getUserInfo(tokens.access_token)
 
@@ -104,20 +107,23 @@ app.post('/api/auth/callback', async (c) => {
         tokens.refresh_token ?? null,
         expiresAt,
       )
-      user = await findUserById(user.id)!
+      user = await findUserById(user.id)
+      if (!user) {
+        return c.json({ error: 'Erro ao recarregar usuário após atualização' }, 500)
+      }
     }
 
-    const jwtToken = await createJwtToken(user!.id, user!.email)
+    const jwtToken = await createJwtToken(user.id, user.email)
 
     return c.json({
       token: jwtToken,
       user: {
-        id: user!.id,
-        google_id: user!.google_id,
-        email: user!.email,
-        name: user!.name,
-        avatar_url: user!.avatar_url,
-        created_at: user!.created_at,
+        id: user.id,
+        google_id: user.google_id,
+        email: user.email,
+        name: user.name,
+        avatar_url: user.avatar_url,
+        created_at: user.created_at,
       },
     })
   } catch (err) {
@@ -268,18 +274,23 @@ app.get('/api/history', authMiddleware, async (c) => {
   const destination = c.req.query('destination')
   const search = c.req.query('search')
 
-  const result = await getClipsByUserId(u.id, {
-    cursor: cursor ? (Number(cursor) || null) : null,
-    limit: limit ? (Number(limit) || 20) : 20,
-    destination: destination || null,
-    search: search || null,
-  })
+  try {
+    const result = await getClipsByUserId(u.id, {
+      cursor: cursor ? (Number(cursor) || null) : null,
+      limit: limit ? (Number(limit) || 20) : 20,
+      destination: destination || null,
+      search: search || null,
+    })
 
-  return c.json({
-    clips: result.clips,
-    nextCursor: result.nextCursor,
-    total: result.total,
-  })
+    return c.json({
+      clips: result.clips,
+      nextCursor: result.nextCursor,
+      total: result.total,
+    })
+  } catch (err) {
+    console.error('History fetch failed:', err)
+    return c.json({ error: 'Erro ao buscar histórico' }, 500)
+  }
 })
 
 // ─── Start ─────────────────────────────────────────────────────

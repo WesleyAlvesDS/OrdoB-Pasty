@@ -163,7 +163,9 @@ export function createUser(user: {
   )
   const id = db.exec('SELECT last_insert_rowid() as id')[0]?.values[0][0] as number
   saveDb()
-  return findUserById(id)!
+  const created = findUserById(id)
+  if (!created) throw new Error('Falha ao criar usuário — registro não encontrado após insert')
+  return created
 }
 
 export function updateUserTokens(
@@ -214,7 +216,9 @@ export function createClip(clip: {
   )
   const id = db.exec('SELECT last_insert_rowid() as id')[0]?.values[0][0] as number
   saveDb()
-  return queryOne<DbClip>('SELECT * FROM clips WHERE id = ?', [id])!
+  const created = queryOne<DbClip>('SELECT * FROM clips WHERE id = ?', [id])
+  if (!created) throw new Error('Falha ao criar clip — registro não encontrado após insert')
+  return created
 }
 
 /**
