@@ -11,14 +11,17 @@ function setEnv(vars: Record<string, string>) {
 }
 
 function resetEnv() {
-  // Clear all env vars that config reads
   delete process.env.GOOGLE_CLIENT_ID
   delete process.env.GOOGLE_CLIENT_SECRET
   delete process.env.GOOGLE_REDIRECT_URI
   delete process.env.JWT_SECRET
-  delete process.env.DATABASE_PATH
   delete process.env.FRONTEND_URL
   delete process.env.PORT
+  delete process.env.DB_HOST
+  delete process.env.DB_PORT
+  delete process.env.DB_USER
+  delete process.env.DB_PASSWORD
+  delete process.env.DB_DATABASE
 }
 
 // ─── Tests ────────────────────────────────────────────────────
@@ -48,9 +51,14 @@ describe('config', () => {
     expect(config.scopes).toContain('openid')
     expect(config.jwtSecret).toBe('change-me-in-production')
     expect(config.jwtExpiryHours).toBe(24)
-    expect(config.databasePath).toBe('./data/pasty.db')
     expect(config.frontendUrl).toBe('http://localhost:5173')
     expect(config.port).toBe(8000)
+    expect(config.db.host).toBe('localhost')
+    expect(config.db.port).toBe(3306)
+    expect(config.db.user).toBe('arti3263_pasty')
+    expect(config.db.password).toBe('Pasty2026OrdoB')
+    expect(config.db.database).toBe('arti3263_pasty')
+    expect(config.db.connectionLimit).toBe(10)
   })
 
   it('reads GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET from env', async () => {
@@ -81,12 +89,22 @@ describe('config', () => {
     expect(config.jwtSecret).toBe('super-secret-jwt')
   })
 
-  it('reads DATABASE_PATH from env', async () => {
-    setEnv({ DATABASE_PATH: '/custom/path/pasty.db' })
+  it('reads MySQL DB settings from env', async () => {
+    setEnv({
+      DB_HOST: 'mysql.example.com',
+      DB_PORT: '3307',
+      DB_USER: 'custom_user',
+      DB_PASSWORD: 'custom_pass',
+      DB_DATABASE: 'custom_db',
+    })
 
     const { config } = await import('../config.js')
 
-    expect(config.databasePath).toBe('/custom/path/pasty.db')
+    expect(config.db.host).toBe('mysql.example.com')
+    expect(config.db.port).toBe(3307)
+    expect(config.db.user).toBe('custom_user')
+    expect(config.db.password).toBe('custom_pass')
+    expect(config.db.database).toBe('custom_db')
   })
 
   it('reads FRONTEND_URL from env', async () => {
@@ -105,11 +123,11 @@ describe('config', () => {
     expect(config.port).toBe(3000)
   })
 
-  it('returns NaN when PORT is not a valid number', async () => {
+  it('returns default port 8000 when PORT is not a valid number', async () => {
     setEnv({ PORT: 'not-a-number' })
 
     const { config } = await import('../config.js')
 
-    expect(config.port).toBeNaN()
+    expect(config.port).toBe(8000)
   })
 })
