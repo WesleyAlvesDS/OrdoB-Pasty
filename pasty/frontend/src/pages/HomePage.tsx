@@ -61,7 +61,7 @@ interface HomePageProps {
   isAuthenticated: boolean
   user: User | null
   token: string | null
-  onCallback: (code: string) => Promise<User>
+  onCallback: (code: string, state?: string) => Promise<User>
   onLogout: () => void
 }
 
@@ -85,6 +85,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const code = params.get('code')
+    const state = params.get('state')
     const error = params.get('error')
 
     if (error) {
@@ -98,7 +99,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
       setAuthLoading(true)
       window.history.replaceState({}, '', '/')
 
-      onCallback(code)
+      onCallback(code, state ?? undefined)
         .then(async () => {
           toast.success('Login realizado!', 'Bem-vindo ao Pasty.')
 

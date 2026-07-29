@@ -74,8 +74,8 @@ export async function getGoogleAuthUrl(): Promise<string> {
 }
 
 /** Exchange OAuth code for JWT token */
-export async function exchangeCode(code: string): Promise<AuthResponse> {
-  const { data } = await api.post<AuthResponse>('/auth/callback', { code })
+export async function exchangeCode(code: string, state?: string): Promise<AuthResponse> {
+  const { data } = await api.post<AuthResponse>('/auth/callback', { code, state })
   return data
 }
 

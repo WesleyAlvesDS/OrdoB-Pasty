@@ -40,8 +40,8 @@ export function useAuth() {
   }, [])
 
   /** Handle OAuth callback — exchange code for JWT */
-  const handleCallback = useCallback(async (code: string) => {
-    const response = await exchangeCode(code)
+  const handleCallback = useCallback(async (code: string, state?: string) => {
+    const response = await exchangeCode(code, state)
     localStorage.setItem(TOKEN_KEY, response.token)
     localStorage.setItem(USER_KEY, JSON.stringify(response.user))
     setToken(response.token)
