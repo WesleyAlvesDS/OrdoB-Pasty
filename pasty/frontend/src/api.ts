@@ -1,12 +1,10 @@
 import axios from 'axios'
 import type { AuthResponse, SaveResponse, HistoryResponse } from './types'
 
-/** API base URL — uses VITE_API_URL in production (Vercel), falls back to '/api' for dev proxy */
-let API_BASE = import.meta.env.VITE_API_URL || '/api'
-// Ensure API_BASE ends with /api (all backend routes are under /api/)
-if (API_BASE !== '/api' && !API_BASE.endsWith('/api')) {
-  API_BASE = API_BASE.replace(/\/+$/, '') + '/api'
-}
+/** API base URL — uses VITE_API_URL if set, defaults to api.pasty.ordob.com */
+const API_BASE = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace(/\/+$/, '') + '/api'
+  : 'https://api.pasty.ordob.com/api'
 
 const MAX_RETRIES = 2
 const RETRY_DELAY_MS = 1000
