@@ -1,4 +1,4 @@
-# 🏗️ Arquitetura e Design do Pasty
+# Arquitetura e Design do Pasty
 
 > Documentação completa da arquitetura, lógica de funcionamento e decisões de design.
 
@@ -94,7 +94,7 @@ Usuário digita texto → clica "Salvar"
         │   │   ├── docs  → createGoogleDoc()  → { documentId }
         │   │   ├── drive → createGoogleDriveFile() → { fileId }
         │   │   └── gmail → createGmailDraft() → { draftId }
-        │   ├── Salva clip no PostgreSQL (RETURNING *)
+        │   ├── Salva clip no MySQL (INSERT com RETURNING via LAST_INSERT_ID)
         │   └── Retorna { clip, duplicate: false }
         │
         └── Resposta:
@@ -114,18 +114,17 @@ Usuário clica "Fazer login"
     ├── Frontend: GET /api/auth/google/login
     │   └── Backend: retorna URL de autorização Google
     │
-    ├── Usuário autoriza no Google → redireciona para /auth/callback?code=XXX
+    ├── Usuário autoriza no Google → redireciona para callback
     │
-    ├── Frontend detecta ?code= na HomePage
-    │   ├── Chama onCallback(code)
-    │   │   └── POST /api/auth/callback { code }
-    │   │       ├── Exchange code → tokens (access + refresh)
-    │   │       ├── Busca user info Google (nome, email, avatar)
-    │   │       ├── Procura user no banco por google_id
-    │   │       ├── Se novo → createUser (com tokens)
-    │   │       ├── Se existente → updateUserTokens
-    │   │       ├── Gera JWT { sub: userId, email, exp }
-    │   │       └── Retorna { token, user }
+    ├── Frontend/Backend detecta ?code=
+    │   ├── Chama POST /api/auth/callback { code }
+    │   │   ├── Exchange code → tokens (access + refresh)
+    │   │   ├── Busca user info Google (nome, email, avatar)
+    │   │   ├── Procura user no banco por google_id
+    │   │   ├── Se novo → createUser (com tokens)
+    │   │   ├── Se existente → updateUserTokens
+    │   │   ├── Gera JWT { sub: userId, email, exp }
+    │   │   └── Retorna { token, user }
     │   └── Salva token + user no localStorage
     │
     └── Usuário autenticado! Verifica PendingSave
@@ -138,7 +137,7 @@ Usuário clica "Fazer login"
 GET /api/history?cursor={id}&limit=20&destination={filtro}&search={termo}
 
 Backend:
-1. Constrói WHERE dinâmico com $1, $2, $3 (parametrizado)
+1. Constrói WHERE dinâmico com ? placeholders (parametrizado)
 2. Busca limit + 1 registros (para detectar próxima página)
 3. Se tem mais que limit → descarta último, nextCursor = lastClip.id
 4. Retorna { clips[], nextCursor, total }
@@ -210,11 +209,12 @@ Frontend:
 - **Diferente do localStorage**: Não precisa limpar manualmente
 - **Estrutura**: `{ title, text, destination }` — salva o intent completo
 
-### 4.5 Por que PostgreSQL em vez de SQLite em produção?
-- **Concorrência**: Múltiplas conexões simultâneas sem locks
+### 4.5 Por que MySQL em vez de SQLite em produção?
+- **Concorrência**: Múltiplas conexões simultâneas sem locks de escrita
 - **Performance**: Índices, query planner, parallel queries
-- **Escalabilidade**: Connection pooling, replication, sharding
-- **Confiabilidade**: WAL, crash recovery, constraints
+- **Escalabilidade**: Connection pooling (mysql2 Pool), replication
+- **Confiabilidade**: WAL, crash recovery, constraints (FK, CHECK)
+- **Disponível no ValueHost**: MySQL 8+ nativo no DirectAdmin
 
 ---
 

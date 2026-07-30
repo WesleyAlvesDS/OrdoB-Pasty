@@ -1,11 +1,11 @@
-# 📋 Plano do Projeto — Pasty
+# Plano do Projeto — Pasty
 
-> **Pasty** — Cole uma vez. Acesse de qualquer lugar.
+> **Pasty** — Cole, organize, acesse. Seu texto sempre com você.
 > Versão: 1.0.0 (MVP) | Última atualização: Julho 2026
 
 ---
 
-## 🎯 Visão Geral
+## Visão Geral
 
 Pasty é um SaaS que permite colar qualquer texto no navegador e salvá-lo diretamente no Google Docs, Google Drive ou Gmail. O diferencial é a **integração profunda com o ecossistema Google** e a **experiência zero-atrito** — sem apps, sem cadastros extras, sem instalação.
 
@@ -20,16 +20,16 @@ Pasty é um SaaS que permite colar qualquer texto no navegador e salvá-lo diret
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
-### ✅ MVP (Completo — v1.0.0)
+### MVP (Completo — v1.0.0)
 | Feature | Status |
 |---------|--------|
 | Login com Google (OAuth 2.0) | ✅ |
 | Salvar no Google Docs | ✅ |
 | Salvar no Google Drive | ✅ |
 | Salvar no Gmail (draft) | ✅ |
-| Controle de duplicidade por hash | ✅ |
+| Controle de duplicidade por hash SHA-256 | ✅ |
 | Histórico com paginação por cursor | ✅ |
 | Busca e filtro no histórico | ✅ |
 | Autenticação JWT | ✅ |
@@ -40,13 +40,14 @@ Pasty é um SaaS que permite colar qualquer texto no navegador e salvá-lo diret
 | Página de Termos de Uso | ✅ |
 | Dark mode automático | ✅ |
 | Responsivo mobile | ✅ |
-| PostgreSQL | ✅ |
-| Docker Compose | ✅ |
+| MySQL | ✅ |
 | SEO (sitemap, JSON-LD, meta tags) | ✅ |
 | Logo SVG personalizada | ✅ |
 | PWA (Service Worker, Manifest) | ✅ |
+| Rate limiting (memória/Redis) | ✅ |
+| Integração OrdoB Auth | ✅ |
 
-### 🔜 Próximas Features
+### Próximas Features
 | Feature | Prioridade | Estimativa |
 |---------|-----------|------------|
 | Google Analytics events | Alta | 2 dias |
@@ -58,37 +59,38 @@ Pasty é um SaaS que permite colar qualquer texto no navegador e salvá-lo diret
 | Extensão Chrome | Baixa | 10 dias |
 | Integração Notion + Dropbox | Baixa | 8 dias |
 
-### 🔮 Visão de Longo Prazo
-- [ ] Dashboard com estatísticas de uso
-- [ ] API pública para desenvolvedores
-- [ ] Editor de texto rich integrado
-- [ ] Colaboração em tempo real
-- [ ] App mobile nativo (React Native)
-- [ ] Suporte a múltiplos idiomas (i18n)
+### Visão de Longo Prazo
+- Dashboard com estatísticas de uso
+- API pública para desenvolvedores
+- Editor de texto rich integrado
+- Colaboração em tempo real
+- App mobile nativo (React Native)
+- Suporte a múltiplos idiomas (i18n)
 
 ---
 
-## 🧱 Stack Tecnológica
+## Stack Tecnológica
 
 | Camada | Tecnologia | Versão | Propósito |
 |--------|-----------|--------|-----------|
-| **Frontend** | React | 19.2.7 | UI declarativa |
-| **Bundler** | Vite | 8.1.1 | Build rápido, HMR |
-| **Linguagem** | TypeScript | 6.0.2 | Tipagem estática |
-| **CSS** | Tailwind CSS | 4.3.2 | Utility-first, design system |
-| **Roteamento** | React Router | 7.18.1 | SPA routing |
-| **HTTP** | Axios | 1.18.1 | Cliente HTTP com interceptors |
-| **Backend** | Hono | 4.12.29 | Framework web leve e rápido |
-| **Servidor** | @hono/node-server | 2.0.8 | Servidor HTTP Node.js |
-| **Banco** | PostgreSQL | 16 | Dados relacionais |
-| **Driver DB** | pg | 8.22.0 | Conexão PostgreSQL |
+| **Frontend** | React | 19.x | UI declarativa |
+| **Bundler** | Vite | 8.x | Build rápido, HMR |
+| **Linguagem** | TypeScript | 6.x / 5.7 | Tipagem estática |
+| **CSS** | Tailwind CSS | 4.x | Utility-first, design system |
+| **Roteamento** | React Router | 7.x | SPA routing |
+| **HTTP** | Axios | 1.x | Cliente HTTP com interceptors |
+| **Backend** | Hono | 4.x | Framework web leve e rápido |
+| **Servidor** | @hono/node-server | 2.x | Servidor HTTP Node.js |
+| **Banco** | MySQL | 8+ | Dados relacionais |
+| **Driver DB** | mysql2 | 3.x | Conexão MySQL com pool |
+| **Cache** | Redis (ioredis) | 5.x | Rate limiting multi-instância |
 | **Auth** | Google OAuth 2.0 | - | Login social |
 | **JWT** | Hono JWT | - | Tokens de sessão |
-| **Infra** | Docker | - | Container do PostgreSQL |
+| **Rate Limiter** | rate-limiter-flexible | 11.x | Proteção contra abuso |
 
 ---
 
-## 📐 Arquitetura de Alto Nível
+## Arquitetura de Alto Nível
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -101,18 +103,19 @@ Pasty é um SaaS que permite colar qualquer texto no navegador e salvá-lo diret
 │  │  └─────────┘ └──────────┘ └────────┘ └──────┬───────┘   │   │
 │  └──────────────────────────────────────────────┬────────────┘   │
 └─────────────────────────────────────────────────┼─────────────────┘
-                                                   │ HTTP REST
-                                                   ▼
+                                                    │ HTTP REST
+                                                    ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Backend API (Hono)                            │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐   │
 │  │  Auth    │ │  Save    │ │ History  │ │  Middleware       │   │
-│  │  Routes  │ │  Routes  │ │  Routes  │ │  (JWT, CORS)     │   │
+│  │  Routes  │ │  Routes  │ │  Routes  │ │  (JWT, CORS,     │   │
+│  │  (inline)│ │  (inline)│ │  (inline)│ │   Rate Limit)    │   │
 │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └──────────────────┘   │
 │       │            │            │                                │
 │  ┌────▼────────────▼────────────▼──────────────────────────┐   │
 │  │              Database Layer (db.ts)                      │   │
-│  │         PostgreSQL (Pool + Queries + Pagination)         │   │
+│  │     MySQL (Pool + Prepared Statements + Pagination)      │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │       │            │            │                                │
 │  ┌────▼────────────▼────────────▼──────────────────────────┐   │
@@ -127,25 +130,25 @@ Pasty é um SaaS que permite colar qualquer texto no navegador e salvá-lo diret
 
 ---
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
-universal-save/
-├── backend/                        # API Hono + PostgreSQL
+pasty/
+├── backend/                        # API Hono + MySQL
 │   ├── src/
-│   │   ├── index.ts               # Rotas, middleware, inicialização
-│   │   ├── config.ts              # Variáveis de ambiente
-│   │   ├── db.ts                  # Pool PostgreSQL + queries + schema
+│   │   ├── index.ts               # App Hono: rotas, middleware, inicialização
+│   │   ├── config.ts              # Variáveis de ambiente (dotenv)
+│   │   ├── db.ts                  # Pool MySQL + queries + schema DDL
 │   │   ├── auth.ts                # OAuth 2.0 Google (login, refresh)
 │   │   ├── middleware.ts          # JWT verification middleware
-│   │   ├── migrate.ts             # Script SQLite → PostgreSQL
+│   │   ├── rate-limiter.ts        # Rate limiting (in-memory ou Redis)
+│   │   ├── ordob-client.ts        # Integração OrdoB Auth
 │   │   └── services/
 │   │       ├── docs.ts            # Google Docs API (criar + inserir)
 │   │       ├── drive.ts           # Google Drive API (upload)
 │   │       └── gmail.ts           # Gmail API (drafts)
 │   ├── package.json
-│   ├── tsconfig.json
-│   └── Dockerfile
+│   └── tsconfig.json
 │
 ├── frontend/                       # React SPA
 │   ├── src/
@@ -153,7 +156,7 @@ universal-save/
 │   │   ├── App.tsx                # Routes + Auth provider
 │   │   ├── api.ts                 # Axios client
 │   │   ├── types.ts               # TypeScript interfaces
-│   │   ├── index.css              # Global styles + animations
+│   │   ├── index.css              # Global styles + Tailwind
 │   │   ├── pages/
 │   │   │   ├── HomePage.tsx       # App principal (form + history)
 │   │   │   ├── SendTextToPc.tsx   # Landing page SEO
@@ -174,48 +177,45 @@ universal-save/
 │   │       ├── useAuth.ts         # Auth state + localStorage
 │   │       └── useSaveForm.ts     # Form state + save logic
 │   ├── public/
-│   │   ├── favicon.svg            # Logo (P gradient)
-│   │   ├── logo.svg               # Full logo with text
-│   │   ├── mask-icon.svg          # Safari mask icon
-│   │   ├── icon-192.{png,svg}     # PWA icons
-│   │   ├── icon-512.{png,svg}     # PWA icons
-│   │   ├── apple-touch-icon.png   # iOS icon
+│   │   ├── favicon.svg
+│   │   ├── logo.svg
+│   │   ├── icon-192.png / .svg
+│   │   ├── icon-512.png / .svg
 │   │   ├── manifest.json          # PWA manifest
 │   │   ├── sw.js                  # Service Worker
-│   │   ├── robots.txt             # SEO
-│   │   ├── sitemap.xml            # SEO
-│   │   └── .htaccess              # SPA fallback
-│   ├── index.html                 # SEO meta tags + JSON-LD
+│   │   ├── robots.txt
+│   │   └── sitemap.xml
+│   ├── index.html
+│   ├── vercel.json
 │   └── vite.config.ts
 │
-├── docs/                          # Documentação
-│   ├── PLANO.md                   # Este arquivo
-│   ├── ARCHITECTURE.md            # Design e lógica do site
-│   ├── ALGORITHMS.md              # Algoritmos e patterns
-│   └── skills/                    # Skills aprendidas
-│       ├── TAILWIND-DESIGN.md
-│       ├── OAUTH-FLOW.md
-│       ├── CURSOR-PAGINATION.md
-│       ├── POSTGRESQL-MIGRATION.md
-│       ├── PWA-SETUP.md
-│       ├── GOOGLE-APIS.md
-│       ├── SEO-OTIMIZACAO.md
-│       ├── DARK-MODE.md
-│       └── ERROR-HANDLING.md
-│
-├── docker-compose.yml             # PostgreSQL container
-└── start-db.sh                    # Script de setup DB
+└── docs/
+    ├── PLANO.md                   # Este arquivo
+    ├── ARCHITECTURE.md            # Design e lógica do site
+    ├── ALGORITHMS.md              # Algoritmos e patterns
+    ├── DEPLOY_GUIDE.md            # Guia de deploy
+    ├── GOOGLE_SETUP.md            # Configuração Google Cloud
+    ├── LAUNCH_CHECKLIST.md        # Checklist de lançamento
+    └── skills/                    # Skills aprendidas
+        ├── TAILWIND-DESIGN.md
+        ├── OAUTH-FLOW.md
+        ├── CURSOR-PAGINATION.md
+        ├── PWA-SETUP.md
+        ├── GOOGLE-APIS.md
+        ├── SEO-OTIMIZACAO.md
+        ├── DARK-MODE.md
+        └── ERROR-HANDLING.md
 ```
 
 ---
 
-## 🧪 Estratégia de Testes
+## Estratégia de Testes
 
 | Nível | Ferramenta | Abrangência |
 |-------|-----------|-------------|
 | Type check | TypeScript (tsc --noEmit) | 100% do código |
 | Lint | oxlint | Código frontend |
-| Testes unitários | (futuro — Vitest) | Hooks + services |
+| Testes unitários | Vitest | Hooks + services |
 | Testes E2E | (futuro — Playwright) | Fluxos críticos |
 
 ### Checklist de Deploy
@@ -223,12 +223,12 @@ universal-save/
 2. Build de produção (`npm run build`)
 3. Verificar variáveis de ambiente
 4. Testar fluxo OAuth completo
-5. Verificar health check
+5. Verificar health check (`GET /api/health`)
 6. Validar sitemap e robots.txt
 
 ---
 
-## 📊 Métricas de Sucesso (MVP)
+## Métricas de Sucesso (MVP)
 
 - **Tempo de save** < 3s (mediana)
 - **Taxa de conversão** login → save > 60%

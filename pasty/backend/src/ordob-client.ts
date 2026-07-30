@@ -10,6 +10,7 @@
  * 2. OrdoB Auth (opcional — apenas para identificação no ecossistema)
  */
 
+import crypto from 'node:crypto'
 import { config } from './config.js'
 import { createMiddleware } from 'hono/factory'
 import type { Context } from 'hono'
@@ -38,14 +39,10 @@ function cacheSet<T>(key: string, data: T, ttlMs: number = CACHE_TTL_MS): void {
   cache.set(key, { data, expiry: Date.now() + ttlMs })
 }
 
-/** Hash rápido para chave de cache a partir do token completo */
+/** Hash SHA-256 para chave de cache a partir do token completo */
 function tokenCacheKey(token: string): string {
-  let hash = 5381
-  for (let i = 0; i < token.length; i++) {
-    hash = ((hash << 5) + hash) + token.charCodeAt(i)
-    hash = hash & hash // Converte para 32-bit integer
-  }
-  return `ordob_token_${Math.abs(hash).toString(36)}`
+  const hash = crypto.createHash('sha256').update(token).digest('hex').slice(0, 16)
+  return `ordob_token_${hash}`
 }
 
 // Limpar cache expirado a cada 10 minutos
@@ -97,9 +94,8 @@ export async function validateOrdoBToken(token: string): Promise<OrdoBAuthRespon
     })
 
     if (!res.ok) {
-      const result: OrdoBAuthResponse = { authenticated: false, user: null }
-      cacheSet(cacheKey, result)
-      return result
+      // Don't cache errors — token might become valid again
+      return { authenticated: false, user: null }
     }
 
     const userData = (await res.json()).user
@@ -147,6 +143,17 @@ export const ordobMiddleware = createMiddleware<{ Variables: OrdoBVariables }>(
     }
 
     const token = authHeader.slice(7)
+
+    // Check if this looks like a Pasty JWT (3 dot-separated base64 parts)
+    const isPastyJwt = token.split('.').length === 3 && token.length > 100
+    if (isPastyJwt) {
+      c.set('ordobUser', null)
+      c.set('ordobToken', null)
+      c.set('ordobAuthenticated', false)
+      await next()
+      return
+    }
+
     const auth = await validateOrdoBToken(token)
 
     c.set('ordobUser', auth.user)

@@ -1,6 +1,6 @@
-# 🚀 Pasty (MVP)
+# 🚀 Pasty
 
-**Copy once. Access anywhere.**
+**Cole, organize, acesse. Seu texto sempre com você.**
 
 ---
 
@@ -33,14 +33,17 @@ Criar uma ferramenta onde o usuário:
 
 ```
 Frontend: React + Vite + TypeScript + Tailwind CSS v4
-Backend:  Hono + TypeScript + sql.js + SQLite
+Backend:  Hono v4 + TypeScript + MySQL (mysql2)
+Cache:    Redis (ioredis)
 Auth:     Google OAuth 2.0
-Deploy:   Frontend → Vercel | Backend → Railway
+Deploy:   Frontend → Vercel | Backend → ValueHost (DirectAdmin + PM2)
 ```
 
 > **Stack unificada em TypeScript** — frontend e backend na mesma linguagem. Isso reduz o contexto mental, acelera o desenvolvimento e permite compartilhar tipos entre as camadas. O Hono é um framework web moderno, leve e TypeScript-nativo.
 
-> **sql.js** — SQLite 100% em JavaScript (compilado via Emscripten). Zero dependências nativas, funciona em qualquer ambiente Node.js sem precisar de build tools.
+> **MySQL** — Banco relacional robusto, disponível no ValueHost via DirectAdmin. Utilizado para metadados dos saves, histórico e dados de usuário.
+
+> **Redis** — Cache em memória para tokens de acesso Google, reduzindo chamadas ao banco e acelerando o refresh de tokens.
 
 > **Por que Vite e não Next.js?**
 > - Vite já está configurado e funcional
@@ -63,16 +66,16 @@ Mês 12:        Extensão Chrome (produto premium) + planos pagos
 ## 🏗️ FASE 1 — Preparação das Contas
 
 ### 1. Domínio
-- Comprar domínio `.com` (ex: `universalsave.com`, `savetext.app`)
-- Configurar DNS Cloudflare + SSL automático
+- `pasty.ordob.com` (frontend) e `pasty-api.ordob.com` (backend)
+- DNS gerenciado pela OrdoB
 
 ### 2. GitHub
-- Repositório: `universal-save`
+- Repositório: `ordob-pasty-frontend`
 - Estrutura:
   ```
-  universal-save/
+  pasty/
   ├── frontend/     → React + Vite (Vercel)
-  ├── backend/      → Hono + TypeScript (Railway)
+  ├── backend/      → Hono + TypeScript (ValueHost)
   ├── docs/         → Documentação
   └── README.md
   ```
@@ -93,10 +96,10 @@ Mês 12:        Extensão Chrome (produto premium) + planos pagos
 3. Criar OAuth Client ID (Web Application):
    - **Origins autorizados:**
      - `http://localhost:5173` (dev)
-     - `https://seudominio.com` (prod)
+     - `https://pasty.ordob.com` (prod)
    - **Redirect URIs:**
      - `http://localhost:5173/auth/callback` (dev)
-     - `https://seudominio.com/auth/callback` (prod)
+     - `https://pasty.ordob.com/auth/callback` (prod)
 
 4. Escopos solicitados (mínimos necessários):
    - `https://www.googleapis.com/auth/documents` (Docs)
@@ -118,21 +121,21 @@ Mês 12:        Extensão Chrome (produto premium) + planos pagos
                    (API REST)
                        |
               ╔═══════════════════╗
-              ║  Hono + Node.js  ║  ← Railway
+              ║  Hono + Node.js  ║  ← ValueHost (PM2)
               ║  (TypeScript)     ║
               ╚═══════════════════╝
-                    /     \
-          Google APIs     SQLite/PostgreSQL
-          (Docs, Drive,     (metadados e
-           Gmail)           histórico)
+                    /     |     \
+          Google APIs   MySQL    Redis
+          (Docs, Drive,  (meta-   (cache de
+           Gmail)        dados)   tokens)
 ```
 
 ### Fluxo de Dados
 
 1. Usuário cola texto → Frontend envia para `/api/save`
-2. Backend gera hash SHA-256 → Verifica duplicidade
-3. Backend chaga Google API (Docs/Drive/Gmail)
-4. Backend salva metadados no banco (hash, destino, data)
+2. Backend gera hash SHA-256 → Verifica duplicidade no MySQL
+3. Backend chama Google API (Docs/Drive/Gmail) — token em cache no Redis
+4. Backend salva metadados no MySQL (hash, destino, data)
 5. Frontend mostra resultado com link
 
 ---
@@ -143,8 +146,9 @@ Mês 12:        Extensão Chrome (produto premium) + planos pagos
 
 | Tecnologia | Função |
 |-----------|--------|
-| **Hono** | Framework web TypeScript-nativo, leve (~14KB), ultra-rápido |
-| **sql.js** | SQLite 100% JavaScript (WASM), sem dependências nativas |
+| **Hono** | Framework web TypeScript-nativo, leve e rápido |
+| **mysql2** | Driver MySQL para Node.js |
+| **ioredis** | Cliente Redis para cache de tokens |
 | **@hono/node-server** | Servidor HTTP Node.js para Hono |
 | **hono/jwt** | Middleware JWT nativo do Hono |
 
@@ -155,17 +159,17 @@ backend/
 ├── src/
 │   ├── index.ts           → App Hono com rotas + serve()
 │   ├── config.ts          → Variáveis de ambiente
-│   ├── db.ts              → SQLite (sql.js) + queries
+│   ├── db.ts              → MySQL (mysql2) + queries
+│   ├── redis.ts           → Redis (ioredis) cache
 │   ├── auth.ts            → OAuth Google (auth URL, troca de código, user info)
 │   ├── middleware.ts      → Middleware JWT (Authorization Bearer)
-│   ├── sql.js.d.ts        → Declarações de tipo para sql.js
 │   └── services/
 │       ├── docs.ts        → Google Docs API
 │       ├── drive.ts       → Google Drive API
 │       └── gmail.ts       → Gmail Drafts API
 ├── package.json
 ├── tsconfig.json
-├── Procfile
+├── ecosystem.config.cjs   → PM2 config
 └── .env.example
 ```
 
@@ -201,12 +205,11 @@ frontend/src/
 ├── main.tsx              → Entry point
 ├── App.tsx               → App com rotas
 ├── index.css             → Tailwind v4 + estilos globais
-├── api.ts                → Cliente HTTP (axios)
+├── api.ts                → Cliente HTTP (fetch)
 ├── hooks/
 │   └── useAuth.ts        → Hook de autenticação
 ├── components/
 │   ├── Header.tsx        → Navbar + Google Login
-│   ├── Hero.tsx          → Landing page (antes do login)
 │   ├── TextBox.tsx       → Área de texto + título
 │   ├── DestinationSelector.tsx → Checkboxes de destino
 │   ├── SaveButton.tsx    → Botão salvar
@@ -220,8 +223,9 @@ frontend/src/
 **Tela inicial (não logado):**
 ```
 ┌─────────────────────────────┐
-│   Universal Text Capture    │
-│   Copy once. Access anywhere│
+│         Pasty               │
+│   Cole, organize, acesse.   │
+│   Seu texto sempre com você │
 │                             │
 │   [ 🔑 Login with Google ] │
 │                             │
@@ -235,7 +239,7 @@ frontend/src/
 **App (logado):**
 ```
 ┌─────────────────────────────┐
-│  📝 Universal Save  👤 user │
+│  📝 Pasty          👤 user  │
 ├─────────────────────────────┤
 │  Título: [______________]  │
 │                             │
@@ -265,9 +269,9 @@ frontend/src/
 
 1. Usuário clica "Salvar"
 2. Backend gera hash SHA-256 do texto
-3. Busca no banco por `user_id + content_hash`
+3. Busca no MySQL por `user_id + content_hash`
 4. **Se existir**: retorna aviso "Este texto já foi salvo. Abrir destino?"
-5. **Se não existir**: cria no Google + salva no banco
+5. **Se não existir**: cria no Google + salva no MySQL
 
 ---
 
@@ -276,30 +280,41 @@ frontend/src/
 ### Frontend (Vercel)
 
 1. Conectar GitHub ao Vercel
-2. Importar projeto: `universal-save/frontend`
+2. Importar projeto: `pasty/frontend`
 3. Configurar variáveis de ambiente:
-   - `VITE_API_URL=https://api.universalsave.com`
+   - `VITE_API_URL=https://pasty-api.ordob.com`
 4. Deploy automático em cada `git push`
 
-### Backend (Railway)
+### Backend (ValueHost — DirectAdmin + PM2)
 
-1. Conectar GitHub ao Railway
-2. Importar projeto: `universal-save/backend`
-3. Configurar variáveis:
+1. Conectar via SSH:
+   ```bash
+   ssh arti3263@br64-da.valueserver.net.br -p 1157
+   ```
+2. Arquivos em: `/home/arti3263/pasty-backend/`
+3. Gerenciar com PM2:
+   ```bash
+   cd /home/arti3263/pasty-backend
+   pm2 start ecosystem.config.cjs
+   pm2 save
+   pm2 status
+   ```
+4. Variáveis de ambiente no `.env`:
    - `GOOGLE_CLIENT_ID=seu-client-id`
    - `GOOGLE_CLIENT_SECRET=seu-client-secret`
-   - `GOOGLE_REDIRECT_URI=https://seudominio.com/auth/callback`
+   - `GOOGLE_REDIRECT_URI=https://pasty.ordob.com/auth/callback`
    - `JWT_SECRET=seu-jwt-secret`
-   - `FRONTEND_URL=https://seudominio.com`
-   - `DATABASE_PATH=./data.db`
-4. Railway detecta automaticamente Node.js (Procfile)
-5. Deploy automático em cada `git push`
+   - `FRONTEND_URL=https://pasty.ordob.com`
+   - `DATABASE_URL=mysql://arti3263_pasty:***@localhost:3306/arti3263_pasty`
+   - `REDIS_URL=redis://localhost:6379`
+   - `PORT=3001`
+5. Backend proxy reverso pelo DirectAdmin em `pasty-api.ordob.com`
 
-### Domínio (Cloudflare)
+### Domínio
 
-- Apontar DNS para Vercel (CNAME)
-- SSL automático via Cloudflare
-- Proxy reverso (opcional, para esconder IP)
+- `pasty.ordob.com` → Vercel (CNAME)
+- `pasty-api.ordob.com` → DirectAdmin proxy reverso para `localhost:3001`
+- SSL via Cloudflare ou DirectAdmin
 
 ---
 
@@ -309,7 +324,7 @@ frontend/src/
 
 | Rota | Título SEO | Foco |
 |------|-----------|------|
-| `/` | Pasty - Paste once. Access anywhere | Principal |
+| `/` | Pasty - Cole, organize, acesse | Principal |
 | `/send-text-to-pc` | Send Text to PC - Quick Copy from Phone to Computer | Tutorial |
 | `/save-text-online` | Save Text Online - Free Text Storage Tool | Ferramenta |
 
@@ -342,7 +357,9 @@ frontend/src/
 - [ ] Domínio configurado com SSL
 - [ ] Google Cloud Project com OAuth ativo
 - [ ] Frontend rodando na Vercel
-- [ ] Backend rodando na Railway
+- [ ] Backend rodando no ValueHost via PM2
+- [ ] MySQL database criado e migrado
+- [ ] Redis configurado e funcional
 - [ ] Fluxo completo testado (Login → Colar → Salvar → Ver resultado)
 - [ ] Google Analytics instalado
 - [ ] Páginas SEO no ar

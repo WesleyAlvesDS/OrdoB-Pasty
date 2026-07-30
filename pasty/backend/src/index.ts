@@ -57,15 +57,26 @@ app.use(
   }),
 )
 
+// ─── Body Size Limit ────────────────────────────────────────────
+
+app.use('/api/*', async (c, next) => {
+  const contentLength = c.req.header('content-length')
+  if (contentLength && parseInt(contentLength) > 1024 * 100) {
+    return c.json({ error: 'Request body too large' }, 413)
+  }
+  await next()
+})
+
+// ─── Rate Limiting (antes de qualquer middleware externo) ──────
+
+// Apply rate limiter to all API routes BEFORE ordobMiddleware
+// para evitar chamadas externas desnecessárias em requests rate-limited
+app.use('/api/*', rateLimiter)
+
 // ─── OrdoB Auth Middleware ───────────────────────────────────────
 
 // Apply OrdoB auth to all protected API routes (hybrid: OrdoB + Google OAuth)
 app.use('/api/*', ordobMiddleware)
-
-// ─── Rate Limiting ───────────────────────────────────────────
-
-// Apply rate limiter to all API routes
-app.use('/api/*', rateLimiter)
 
 // ─── Health ────────────────────────────────────────────────────
 
@@ -95,7 +106,7 @@ app.post('/api/auth/callback', async (c) => {
     const googleUser = await getUserInfo(tokens.access_token)
 
     const expiresAt = new Date(
-      Date.now() + (tokens.expires_in ?? 3600) * 1000,
+      Date.now() + ((tokens.expires_in && tokens.expires_in > 0) ? tokens.expires_in : 3600) * 1000,
     ).toISOString()
 
     let user = await findUserByGoogleId(googleUser.id)
@@ -157,6 +168,12 @@ app.get('/api/auth/me', authMiddleware, (c) => {
       created_at: u.created_at,
     },
   })
+})
+
+app.post('/api/auth/refresh', authMiddleware, async (c) => {
+  const u = c.var.user
+  const newToken = await createJwtToken(u.id, u.email)
+  return c.json({ token: newToken })
 })
 
 // ─── Save Route (Pasty é gratuito — sem verificação de licença) ─
@@ -261,10 +278,16 @@ async function getValidGoogleToken(user: DbUser): Promise<string> {
 
     const newTokens = await refreshAccessToken(user.refresh_token)
     const expiresAt = new Date(
-      Date.now() + (newTokens.expires_in ?? 3600) * 1000,
+      Date.now() + ((newTokens.expires_in && newTokens.expires_in > 0) ? newTokens.expires_in : 3600) * 1000,
     ).toISOString()
 
-    await updateUserTokens(user.id, newTokens.access_token, null, expiresAt)
+    // Google CAN return a new refresh_token during refresh
+    await updateUserTokens(
+      user.id,
+      newTokens.access_token,
+      newTokens.refresh_token ?? null,
+      expiresAt,
+    )
     user.access_token = newTokens.access_token
     user.token_expires_at = expiresAt
   }

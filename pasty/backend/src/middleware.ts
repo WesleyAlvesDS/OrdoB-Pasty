@@ -16,6 +16,8 @@ export function createJwtToken(userId: number, email: string): Promise<string> {
   const payload = {
     sub: String(userId),
     email,
+    iss: 'pasty-api',
+    aud: 'pasty-frontend',
     exp: Math.floor(Date.now() / 1000) + config.jwtExpiryHours * 3600,
     iat: Math.floor(Date.now() / 1000),
   }
@@ -35,8 +37,11 @@ export const authMiddleware = createMiddleware<{ Variables: Variables }>(
     const token = authHeader.slice(7)
     try {
       const payload = (await verify(token, config.jwtSecret, 'HS256')) as {
-        sub: string
-        email: string
+        sub: string; email: string; aud?: string
+      }
+      // Verify audience
+      if (payload.aud && payload.aud !== 'pasty-frontend') {
+        return c.json({ error: 'Invalid token audience' }, 401)
       }
       const user = await findUserById(Number(payload.sub))
       if (!user) {

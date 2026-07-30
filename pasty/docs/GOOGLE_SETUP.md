@@ -1,6 +1,6 @@
-# ☁️ Guia de Setup — Google Cloud Console
+# Guia de Setup — Google Cloud Console
 
-## 🎯 O que você precisa criar
+## O que você precisa criar
 
 1. **Projeto no Google Cloud**
 2. **APIs ativadas** (Drive, Docs, Gmail)
@@ -17,8 +17,6 @@
 4. Nome: `Pasty`
 5. Localização: deixe padrão
 6. Clique em **CRIAR**
-
-📸 *O botão "NOVO PROJETO" fica no canto superior direito do modal*
 
 ---
 
@@ -40,7 +38,7 @@
 1. Busque: `Gmail API`
 2. Clique em **ATIVAR**
 
-✅ As 3 APIs precisam estar ativas para o app funcionar.
+> As 3 APIs precisam estar ativas para o app funcionar.
 
 ---
 
@@ -54,7 +52,7 @@
 - **App name:** `Pasty`
 - **User support email:** Seu e-mail
 - **Logo:** Opcional
-- **Authorized domains:** Seu domínio (ex: `pasty.app`)
+- **Authorized domains:** `ordob.com` (domínio do ecossistema)
 
 ### Developer Contact
 - Seu e-mail
@@ -74,8 +72,6 @@ profile                   → Ver nome/foto
 ### Test Users
 Adicione seu e-mail como usuário de teste. Enquanto estiver em "Testing", só usuários adicionados aqui podem logar.
 
-📸 *Role até o final e clique em **SAVE AND CONTINUE** a cada etapa*
-
 ---
 
 ## Passo 4: Criar Credencial OAuth
@@ -87,23 +83,23 @@ Adicione seu e-mail como usuário de teste. Enquanto estiver em "Testing", só u
 
 ### Authorized JavaScript Origins
 
-Adicione **duas** origens:
+Adicione **duas** origens (produção e desenvolvimento):
 
 ```
+https://pasty.ordob.com
 http://localhost:5173
-https://seu-frontend.vercel.app
 ```
 
 ### Authorized Redirect URIs
 
-Adicione **duas** URIs:
+O backend do Pasty processa o callback OAuth. Adicione **duas** URIs:
 
 ```
-http://localhost:5173/auth/callback
-https://seu-frontend.vercel.app/auth/callback
+https://pasty-api.ordob.com/api/auth/google/callback
+http://localhost:3001/api/auth/google/callback
 ```
 
-📸 *Clique em **CREATE** no final*
+> A URI de redirecionamento precisa corresponder exatamente ao valor de `GOOGLE_REDIRECT_URI` no `.env` do backend.
 
 5. **IMPORTANTE:** Anote o **Client ID** e **Client Secret** que aparecem no modal
    - Se fechar sem copiar, você pode ver depois clicando no lápis de edição da credencial
@@ -118,13 +114,38 @@ Quando estiver pronto para lançar:
 2. Clique em **PUBLISH APP** (na seção "Publishing status")
 3. Confirme
 
-⚠️ **Antes de publicar:**
+**Antes de publicar:**
 - Tenha certeza que as Redirect URIs de produção estão corretas
-- O domínio do frontend está em "Authorized domains"
+- O domínio `ordob.com` está em "Authorized domains"
+- Teste o fluxo completo com um usuário de teste primeiro
 
 ---
 
-## 📋 Resumo das Informações
+## Atualizar Credenciais no Servidor (ValueHost)
+
+Após criar ou alterar as credenciais no Google Cloud Console:
+
+1. Acesse o servidor via SSH:
+   ```bash
+   ssh arti3263@br64-da.valueserver.net.br -p 1157
+   ```
+
+2. Edite o arquivo `.env` no backend:
+   ```bash
+   cd /home/arti3263/pasty-backend
+   nano .env
+   ```
+
+3. Atualize os valores de `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`
+
+4. Reinicie o PM2:
+   ```bash
+   pm2 restart pasty-backend
+   ```
+
+---
+
+## Resumo das Informações
 
 Guarde estas informações — você vai precisar para configurar o backend:
 
@@ -132,6 +153,9 @@ Guarde estas informações — você vai precisar para configurar o backend:
 |------------|---------------|
 | **GOOGLE_CLIENT_ID** | Credentials > Sua credencial > Client ID |
 | **GOOGLE_CLIENT_SECRET** | Credentials > Sua credencial > Client Secret |
-| **GOOGLE_REDIRECT_URI** | Você define (http://localhost:5173/auth/callback para dev) |
+| **GOOGLE_REDIRECT_URI (dev)** | `http://localhost:3001/api/auth/google/callback` |
+| **GOOGLE_REDIRECT_URI (prod)** | `https://pasty-api.ordob.com/api/auth/google/callback` |
+| **FRONTEND_URL (dev)** | `http://localhost:5173` |
+| **FRONTEND_URL (prod)** | `https://pasty.ordob.com` |
 
-> 💡 **Dica:** Seu `GOOGLE_REDIRECT_URI` no backend `.env` deve ser igual ao que você configurou no Google Cloud Console!
+> **Dica:** O `GOOGLE_REDIRECT_URI` no backend `.env` deve ser **exatamente igual** ao que você configurou no Google Cloud Console!

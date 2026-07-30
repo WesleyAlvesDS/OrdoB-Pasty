@@ -1,63 +1,71 @@
-# 🚀 Checklist de Lançamento — Pasty
+# Checklist de Lançamento — Pasty
 
-## 📋 Pré-Deploy
+## Google Cloud / OAuth
 
-### Google Cloud
 - [ ] Projeto Google Cloud criado (`Pasty`)
 - [ ] Google Drive API ativada
 - [ ] Google Docs API ativada
 - [ ] Gmail API ativada
-- [ ] Tela de consentimento OAuth configurada (modo Testing)
+- [ ] Tela de consentimento OAuth configurada (modo Testing → Published)
 - [ ] OAuth Client ID criado (Web Application)
 - [ ] `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` salvos
-- [ ] Redirect URIs configuradas (dev + prod)
-- [ ] Seu e-mail adicionado como Test User
+- [ ] Authorized JavaScript Origins configuradas:
+  - `https://pasty.ordob.com`
+  - `http://localhost:5173` (dev)
+- [ ] Authorized Redirect URIs configuradas:
+  - `https://pasty-api.ordob.com/api/auth/google/callback` (prod)
+  - `http://localhost:3001/api/auth/google/callback` (dev)
+- [ ] Seu e-mail adicionado como Test User (enquanto em Testing)
 
-### Código
-- [ ] Frontend builda sem erros (`npm run build`)
-- [ ] Backend roda sem erros (`uvicorn backend.main:app`)
+---
+
+## Código
+
+- [ ] Backend compila sem erros: `cd backend && npm run build`
+- [ ] Frontend compila sem erros: `cd frontend && npm run build`
 - [ ] Variáveis de ambiente documentadas no `.env.example`
-- [ ] `.gitignore` configurado (node_modules, venv, .env, __pycache__)
+- [ ] `.gitignore` configurado (`node_modules`, `.env`, `dist`)
 - [ ] `sitemap.xml` criado com URLs corretas
 - [ ] `robots.txt` criado
 - [ ] Meta tags OG no `index.html`
 
-### Repositório
-- [ ] Repositório no GitHub criado
-- [ ] Código commitado e pushado
-- [ ] Branch `main` definida
-
 ---
 
-## 🚀 Deploy
+## Deploy — Frontend (Vercel)
 
-### Frontend (Vercel)
-- [ ] Projeto importado na Vercel
+- [ ] Projeto importado na Vercel a partir do repositório
 - [ ] Diretório raiz: `frontend/`
 - [ ] Build passou na Vercel
-- [ ] Deploy publicado e acessível
-- [ ] Domínio customizado configurado (se tiver)
+- [ ] Domínio customizado configurado: `pasty.ordob.com`
 - [ ] SSL ativo (Vercel fornece automático)
-- [ ] `VITE_API_URL` configurada (aponta para Railway)
-- [ ] `VITE_GA_MEASUREMENT_ID` configurada (se tiver GA)
-
-### Backend (Railway)
-- [ ] Projeto importado no Railway
-- [ ] Diretório raiz: `backend/`
-- [ ] Start command configurado
-- [ ] Deploy publicado
-- [ ] Railway gera URL pública (ex: `pasty.up.railway.app`)
 - [ ] Variáveis de ambiente configuradas:
-  - `GOOGLE_CLIENT_ID` ✅
-  - `GOOGLE_CLIENT_SECRET` ✅
-  - `GOOGLE_REDIRECT_URI` ✅ (aponta para Vercel)
-  - `JWT_SECRET` ✅
-  - `FRONTEND_URL` ✅ (aponta para Vercel)
-- [ ] Domínio customizado (se tiver)
+  - `VITE_API_URL=https://pasty-api.ordob.com`
+- [ ] Rewrites do `vercel.json` funcionando (proxy `/api/*` → backend)
 
 ---
 
-## ✅ Testes Pós-Deploy
+## Deploy — Backend (ValueHost + DirectAdmin + PM2)
+
+- [ ] Código transferido para o servidor (`/home/arti3263/pasty-backend/`)
+- [ ] `npm install` executado
+- [ ] `npm run build` executado
+- [ ] Arquivo `.env` criado com todas as variáveis:
+  - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+  - `GOOGLE_REDIRECT_URI=https://pasty-api.ordob.com/api/auth/google/callback`
+  - `JWT_SECRET`
+  - `FRONTEND_URL=https://pasty.ordob.com`
+  - `DB_HOST`, `DB_PORT=3307`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE`
+  - `REDIS_URL` (se aplicável)
+  - `PORT=3001`
+- [ ] MySQL configurado e banco `arti3263_pasty` criado (porta 3307)
+- [ ] PM2 rodando o processo: `pm2 start ecosystem.config.cjs` ou `pm2 start dist/index.js --name pasty-backend`
+- [ ] PM2 salvo no startup: `pm2 save && pm2 startup`
+- [ ] Porta 3001 liberada no firewall do DirectAdmin
+- [ ] Health check: `curl https://pasty-api.ordob.com/api/health` → `{"status":"ok"}`
+
+---
+
+## Testes Pós-Deploy
 
 ### Fluxo completo
 - [ ] `GET /api/health` → `{"status":"ok"}`
@@ -66,13 +74,14 @@
 - [ ] Clique em "Entrar com Google" → redireciona para Google
 - [ ] Autorização → redireciona de volta
 - [ ] Login completo → vê interface de salvar
-- [ ] Colar texto → salvar em **Google Docs** → abre o documento ✅
-- [ ] Colar texto → salvar em **Google Drive** → abre o arquivo ✅
-- [ ] Colar texto → salvar em **Gmail** → rascunho criado ✅
-- [ ] Salvar mesmo texto novamente → mostra aviso de duplicidade ✅
-- [ ] Histórico mostra saves anteriores ✅
-- [ ] Logout → volta para tela inicial ✅
-- [ ] Login novamente → histórico preservado ✅
+- [ ] Colar texto → salvar em **Google Docs** → abre o documento
+- [ ] Colar texto → salvar em **Google Drive** → abre o arquivo
+- [ ] Colar texto → salvar em **Gmail** → rascunho criado
+- [ ] Salvar mesmo texto novamente → mostra aviso de duplicidade
+- [ ] Histórico mostra saves anteriores
+- [ ] Logout → volta para tela inicial
+- [ ] Login novamente → histórico preservado
+- [ ] PendingSave: não logado → tenta salvar → redireciona OAuth → salva automaticamente
 
 ### SEO
 - [ ] `/sitemap.xml` acessível
@@ -91,7 +100,15 @@
 
 ---
 
-## 📢 Lançamento
+## Monitoramento
+
+- [ ] PM2 status ok: `pm2 status` (pasty-backend online)
+- [ ] Logs sem erros: `pm2 logs pasty-backend --lines 50`
+- [ ] Uptime Robot configurado monitorando `https://pasty-api.ordob.com/api/health`
+
+---
+
+## Lançamento
 
 ### Dia 1 — Publicação
 - [ ] Site no ar
@@ -113,14 +130,9 @@
 - [ ] Avaliar métricas de retenção
 - [ ] Decidir próximas features baseado em dados
 
-### Mês 2-3
-- [ ] **Hacker News** (quando tiver tração)
-- [ ] Considerar AdSense nas páginas SEO
-- [ ] Planejar modelo Freemium
-
 ---
 
-## 📊 Métricas para Acompanhar
+## Métricas para Acompanhar
 
 | Métrica | Onde ver | Meta |
 |---------|----------|------|
@@ -128,12 +140,12 @@
 | Textos salvos | Backend logs | > 50/dia |
 | Taxa de conversão (login) | GA Events | > 30% |
 | Bounce rate | Google Analytics | < 60% |
-| Erros no save | Railway logs | < 1% |
+| Erros no save | PM2 logs | < 1% |
 | Tempo de carregamento | Lighthouse | < 3s |
 
 ---
 
-## ❗ Antes de Publicar no Product Hunt / HN
+## Antes de Publicar no Product Hunt / HN
 
 - [ ] Site estável sem erros conhecidos
 - [ ] Pelo menos 50 usuários testaram
@@ -148,4 +160,4 @@
 
 ---
 
-> 🎯 **Lembrete:** O MVP é para validar a ideia. Não precisa estar perfeito — precisa funcionar. Lance rápido, itere com feedback.
+> **Lembrete:** O MVP é para validar a ideia. Não precisa estar perfeito — precisa funcionar. Lance rápido, itere com feedback.

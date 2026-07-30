@@ -1,6 +1,6 @@
-# 🚀 Deploy no DirectAdmin
+# 🚀 Deploy do Pasty
 
-Guia passo a passo para publicar o **Pasty** no DirectAdmin (Apache/LiteSpeed + CloudLinux Node.js).
+Guia passo a passo para publicar o **Pasty** em produção.
 
 ---
 
@@ -8,94 +8,145 @@ Guia passo a passo para publicar o **Pasty** no DirectAdmin (Apache/LiteSpeed + 
 
 O deploy é dividido em duas partes:
 
-1. **Frontend (React + Vite)** → arquivos estáticos (SPA) no `public_html`
-2. **Backend (Hono + Node.js)** → aplicação Node.js rodando via CloudLinux Passenger
+1. **Frontend (React + Vite)** → arquivos estáticos (SPA) na **Vercel**
+2. **Backend (Hono + Node.js)** → aplicação Node.js rodando via **PM2** no **ValueHost** (DirectAdmin)
 
 ---
 
-## Passo 1: Frontend
+## Passo 1: Frontend (Vercel)
 
-### 1.1 Build
+### 1.1 Conectar o repositório
+
+1. Acesse [vercel.com](https://vercel.com) e faça login
+2. Clique em **Add New → Project**
+3. Importe o repositório GitHub: `anomalyco/ordob-pasty-frontend`
+4. Selecione o diretório `pasty/frontend`
+
+### 1.2 Configurar build
+
+| Config | Valor |
+|--------|-------|
+| **Framework Preset** | Vite |
+| **Build Command** | `npm run build` |
+| **Output Directory** | `dist` |
+| **Install Command** | `npm install` |
+
+### 1.3 Variáveis de ambiente
+
+| Variável | Valor |
+|----------|-------|
+| `VITE_API_URL` | `https://pasty-api.ordob.com` |
+
+### 1.4 Deploy
+
+- Clique em **Deploy**
+- A Vercel faz deploy automático em cada `git push` para a branch principal
+- URL de produção: `https://pasty.ordob.com`
+
+---
+
+## Passo 2: Backend (ValueHost — DirectAdmin + PM2)
+
+### 2.1 Acesso SSH
 
 ```bash
-cd universal-save/frontend
+ssh arti3263@br64-da.valueserver.net.br -p 1157
+```
+
+### 2.2 Estrutura no servidor
+
+Os arquivos do backend ficam em:
+
+```
+/home/arti3263/pasty-backend/
+├── src/
+├── dist/
+├── node_modules/
+├── package.json
+├── ecosystem.config.cjs
+├── .env
+└── tsconfig.json
+```
+
+### 2.3 Enviar arquivos
+
+Opção A — via git clone:
+
+```bash
+cd /home/arti3263
+git clone <repo-url> pasty-backend
+cd pasty-backend
 npm install
 npm run build
 ```
 
-Gera a pasta `dist/` com os arquivos HTML, CSS e JS compilados.
-
-### 1.2 Enviar para o DirectAdmin
-
-- Acesse o **Gerenciador de Arquivos** do DirectAdmin
-- Vá até `domains/seudominio.com/public_html`
-- Envie **todo o conteúdo** da pasta `dist/` para dentro de `public_html/`
-  (não a pasta `dist` em si, mas o conteúdo dela)
-
-### 1.3 .htaccess para SPA (React Router)
-
-Crie o arquivo `.htaccess` dentro de `public_html/`:
-
-```apache
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
-</IfModule>
-```
-
-Isso faz o Apache servir o `index.html` para qualquer rota (necessário para o React Router).
-
----
-
-## Passo 2: Backend
-
-### 2.1 Build
+Opção B — via SCP:
 
 ```bash
-cd universal-save/backend
-npm install
-npm run build
+# Do seu terminal local
+scp -P 1157 -r ./backend/* arti3263@br64-da.valueserver.net.br:/home/arti3263/pasty-backend/
 ```
 
-Isso compila o TypeScript e gera a pasta `dist/` com o `index.js`.
+### 2.4 Configurar variáveis de ambiente
 
-### 2.2 Preparar arquivos
+Edite `/home/arti3263/pasty-backend/.env`:
 
-Compacte em .zip apenas:
-- `dist/` (com o `index.js` dentro)
-- `package.json`
-- `package-lock.json`
-- `.env` (com as credenciais reais — já preenchido)
+```
+GOOGLE_CLIENT_ID=seu-client-id
+GOOGLE_CLIENT_SECRET=seu-client-secret
+GOOGLE_REDIRECT_URI=https://pasty.ordob.com/auth/callback
+JWT_SECRET=sua-chave-secreta
+FRONTEND_URL=https://pasty.ordob.com
+DATABASE_URL=mysql://arti3263_pasty:senha@localhost:3306/arti3263_pasty
+REDIS_URL=redis://localhost:6379
+PORT=3001
+```
 
-### 2.3 Configurar Node.js App no DirectAdmin
+### 2.5 Ecosystem file (PM2)
 
-1. No painel DirectAdmin, vá em **Setup Node.js App** (CloudLinux / Passenger)
-2. Clique em **Create Application**
-3. Preencha:
-   - **Node.js version:** 20.x ou 22.x
-   - **Application mode:** Production
-   - **Application root:** pasta do backend (ex: `backend`)
-   - **Application URL:** subdomínio ou caminho (ex: `api.seudominio.com`)
-   - **Application startup file:** `dist/index.js`
-4. Clique em **Create**
+O arquivo `ecosystem.config.cjs` deve conter:
 
-### 2.4 Enviar arquivos
+```javascript
+module.exports = {
+  apps: [{
+    name: "pasty-backend",
+    script: "dist/index.js",
+    instances: 1,
+    exec_mode: "fork",
+    env: {
+      NODE_ENV: "production",
+    }
+  }]
+};
+```
 
-- No Gerenciador de Arquivos, abra a pasta criada para a aplicação
-- Extraia o .zip do backend dentro dessa pasta
+### 2.6 Iniciar com PM2
 
-### 2.5 Instalar dependências
+```bash
+cd /home/arti3263/pasty-backend
+pm2 start ecosystem.config.cjs
+pm2 save
+pm2 status
+```
 
-- Edite a aplicação Node.js criada
-- Clique em **Run NPM Install** — o DirectAdmin instalará as dependências
+Para ver logs:
 
-### 2.6 Iniciar
+```bash
+pm2 logs pasty-backend
+```
 
-- Clique em **Start Application** (ou Restart)
+Para reiniciar após alterações:
+
+```bash
+pm2 restart pasty-backend
+```
+
+### 2.7 Proxy reverso no DirectAdmin
+
+O DirectAdmin faz proxy reverso de `pasty-api.ordob.com` para `localhost:3001`:
+
+1. No painel DirectAdmin, vá em **Proxy domains** ou **Apache Configuration**
+2. Crie um proxy reverso apontando de `pasty-api.ordob.com` para `http://localhost:3001`
 
 ---
 
@@ -115,9 +166,9 @@ Compacte em .zip apenas:
 1. **APIs & Services > Credentials > Create Credentials > OAuth Client ID**
 2. Tipo: **Web Application**
 3. **Authorized JavaScript Origins:**
-   - `https://seudominio.com`
+   - `https://pasty.ordob.com`
 4. **Authorized Redirect URIs:**
-   - `https://seudominio.com/auth/callback`
+   - `https://pasty.ordob.com/auth/callback`
 5. Anote o **Client ID** e **Client Secret**
 
 ### 3.3 Tela de consentimento
@@ -129,28 +180,47 @@ Compacte em .zip apenas:
 
 ---
 
-## Passo 4: Variáveis de Ambiente
+## Passo 4: MySQL
 
-O arquivo `.env` do backend já deve estar preenchido. Verifique:
+### 4.1 Criar database
+
+1. No DirectAdmin, vá em **MySQL Management**
+2. Crie o banco: `arti3263_pasty`
+3. Crie um usuário e conceda permissões
+4. Anote a senha para o `.env`
+
+### 4.2 Migrations
+
+As migrations rodam automaticamente na inicialização do backend. Para rodar manualmente:
+
+```bash
+cd /home/arti3263/pasty-backend
+npm run migrate
+```
+
+---
+
+## Passo 5: Redis
+
+O Redis já está disponível no servidor ValueHost. Configure a conexão no `.env`:
 
 ```
-GOOGLE_CLIENT_ID=seu-client-id
-GOOGLE_CLIENT_SECRET=seu-client-secret
-GOOGLE_REDIRECT_URI=https://seudominio.com/auth/callback
-JWT_SECRET=sua-chave-secreta
-FRONTEND_URL=https://seudominio.com
-DATABASE_PATH=./data.db
-PORT=8000
+REDIS_URL=redis://localhost:6379
 ```
 
-> Após alterar o `.env`, **reinicie** a aplicação Node.js no DirectAdmin.
+Para verificar se o Redis está ativo:
+
+```bash
+redis-cli ping
+# Deve retornar: PONG
+```
 
 ---
 
 ## Verificação Pós-Deploy
 
-- [ ] `GET /api/health` → `{"status":"ok"}`
-- [ ] Página inicial carrega sem erros
+- [ ] `GET https://pasty-api.ordob.com/api/health` → `{"status":"ok"}`
+- [ ] Página inicial `https://pasty.ordob.com` carrega sem erros
 - [ ] Login com Google funciona
 - [ ] Salvar em Docs/Drive/Gmail funciona
 - [ ] Histórico carrega
@@ -160,18 +230,27 @@ PORT=8000
 
 ---
 
-## Alternativa: SSH + PM2
+## Manutenção
 
-Se tiver acesso SSH/VPS:
+### Atualizar backend
 
 ```bash
-ssh usuario@seu-servidor
-npm install -g pm2                # se não tiver
-
-# Envie os arquivos do backend compilados
-cd /caminho/do/backend
-npm install --production
-pm2 start dist/index.js --name "pasty-backend"
+ssh arti3263@br64-da.valueserver.net.br -p 1157
+cd /home/arti3263/pasty-backend
+git pull
+npm install
+npm run build
+pm2 restart pasty-backend
 ```
 
-Configure proxy reverso no DirectAdmin para redirecionar `api.seudominio.com` para `localhost:8000`.
+### Ver logs
+
+```bash
+pm2 logs pasty-backend --lines 100
+```
+
+### Status PM2
+
+```bash
+pm2 status
+```

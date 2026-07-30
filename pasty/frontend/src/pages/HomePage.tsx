@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState, lazy, Suspense } from 'react'
+import { useEffect, useCallback, useState, lazy, Suspense, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { User, DestinationInfo, Clip, Destination } from '../types'
 import { getGoogleAuthUrl, saveText, getStoredToken } from '../api'
@@ -74,6 +74,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const [authLoading, setAuthLoading] = useState(false)
+  const callbackProcessed = useRef(false)
 
   const {
     title, text, destination, saving, savedClip, isDuplicate, saveError, canSave,
@@ -106,9 +107,19 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
           const raw = sessionStorage.getItem(PENDING_KEY)
           if (!raw) return
 
+          let pending: PendingSave | null = null
+          try {
+            const parsed = JSON.parse(raw)
+            if (!parsed || !parsed.text?.trim()) {
+              sessionStorage.removeItem(PENDING_KEY)
+              return
+            }
+            pending = parsed as PendingSave
+          } catch {
+            sessionStorage.removeItem(PENDING_KEY)
+            return
+          }
           sessionStorage.removeItem(PENDING_KEY)
-          const pending: PendingSave = JSON.parse(raw)
-          if (!pending.text?.trim()) return
 
           const savedToken = getStoredToken()
           if (!savedToken) return

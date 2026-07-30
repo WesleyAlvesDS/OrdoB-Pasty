@@ -21,7 +21,7 @@ export const config = {
   ],
 
   // JWT
-  jwtSecret: process.env.JWT_SECRET ?? 'change-me-in-production',
+  jwtSecret: (() => { const s = process.env.JWT_SECRET; if (!s) throw new Error('JWT_SECRET environment variable is required'); return s; })(),
   jwtExpiryHours: 24,
 
   // MySQL Database
@@ -29,7 +29,7 @@ export const config = {
     host: process.env.DB_HOST ?? 'localhost',
     port: parseInt(process.env.DB_PORT ?? '3306', 10),
     user: process.env.DB_USER ?? 'arti3263_pasty',
-    password: process.env.DB_PASSWORD ?? 'Pasty2026OrdoB',
+    password: process.env.DB_PASSWORD ?? '',
     database: process.env.DB_DATABASE ?? 'arti3263_pasty',
     waitForConnections: true,
     connectionLimit: 10,

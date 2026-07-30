@@ -1,32 +1,65 @@
-# React + TypeScript + Vite
+# Pasty — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> Cole, organize, acesse. Seu texto sempre com você.
 
-Currently, two official plugins are available:
+Interface web do Pasty, construída com React, Vite, TypeScript e Tailwind CSS v4. Deploy feito na Vercel em `pasty.ordob.com`.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Stack
 
-## React Compiler
+| Tecnologia | Versão |
+|-----------|--------|
+| React | 19.x |
+| Vite | 8.x |
+| TypeScript | 6.x |
+| Tailwind CSS | 4.x |
+| React Router | 7.x |
+| Axios | 1.x |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Setup
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Acesse `http://localhost:5173` para desenvolvimento.
+
+## Scripts
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Inicia servidor de desenvolvimento (Vite) |
+| `npm run build` | Type check + build para produção (tsc -b && vite build) |
+| `npm run preview` | Servir build localmente (Vite preview) |
+| `npm run lint` | Lint com oxlint |
+| `npm run generate-icons` | Gera ícones PWA via script sharp |
+
+## Variáveis de Ambiente
+
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `VITE_API_URL` | URL base da API backend | `https://pasty-api.ordob.com` |
+
+## Estrutura
+
+```
+frontend/
+├── src/
+│   ├── main.tsx               # Entry point + SW registration
+│   ├── App.tsx                # Routes + Auth provider
+│   ├── api.ts                 # Axios client
+│   ├── types.ts               # TypeScript interfaces
+│   ├── index.css              # Global styles + Tailwind
+│   ├── pages/                 # Páginas (HomePage, landing SEO, etc.)
+│   ├── components/            # Componentes reutilizáveis
+│   └── hooks/                 # Hooks customizados (useAuth, useSaveForm)
+├── public/                    # Assets estáticos (favicon, PWA, SEO)
+├── index.html                 # Entry HTML com meta tags OG
+├── vercel.json                # Configuração de deploy Vercel
+└── vite.config.ts             # Configuração Vite + Tailwind
+```
+
+## Backend
+
+O backend está em `pasty/backend/`. Consulte o [README do backend](../README.md) para instruções de setup e deploy.

@@ -1,6 +1,6 @@
 # OrdoB Pasty
 
-**Paste once. Access anywhere.** — Um utilitário de produtividade integrado ao ecossistema **OrdoB**.
+**Cole, organize, acesse. Seu texto sempre com você.** — Um utilitário de produtividade integrado ao ecossistema **OrdoB**.
 
 Cole qualquer texto e salve diretamente no Google Docs, Google Drive ou Gmail. Acesse de qualquer dispositivo.
 
@@ -20,10 +20,10 @@ Cole qualquer texto e salve diretamente no Google Docs, Google Drive ou Gmail. A
 | Camada | Tecnologia |
 |--------|------------|
 | **Frontend** | React 19 + Vite + TypeScript + Tailwind CSS v4 |
-| **Backend** | Hono + TypeScript + PostgreSQL (pg) |
+| **Backend** | Hono v4 + TypeScript + Node.js |
 | **Auth** | Google OAuth 2.0 |
-| **Banco** | PostgreSQL |
-| **Deploy** | Vercel (frontend) + Railway (backend) |
+| **Banco** | MySQL (mysql2) + Redis (ioredis) para cache |
+| **Deploy** | Vercel (frontend) + ValueHost DirectAdmin/PM2 (backend) |
 
 ## 🔧 Setup Local
 
@@ -56,8 +56,8 @@ npm run dev
 ### 4. Acesse
 
 - Frontend: http://localhost:5173
-- Backend API: http://localhost:8000
-- Health check: http://localhost:8000/api/health
+- Backend API: http://localhost:3001
+- Health check: http://localhost:3001/api/health
 
 ## 🌐 Deploy
 
@@ -66,22 +66,32 @@ npm run dev
 1. Conecte o repositório GitHub ao Vercel
 2. Importe o projeto `pasty/frontend`
 3. Configure a variável de ambiente:
-   - `VITE_API_URL=https://seu-backend.onrender.com`
+   - `VITE_API_URL=https://pasty-api.ordob.com`
 4. Deploy automático em cada `git push`
 
-### Backend (Railway)
+### Backend (ValueHost — DirectAdmin + PM2)
 
-1. Conecte o repositório GitHub ao Railway
-2. Importe o projeto `pasty/backend`
-3. Railway detecta automaticamente Node.js e usa o `start` script do `package.json`
-4. Configure as variáveis de ambiente:
+1. Faça SSH para o servidor:
+   ```bash
+   ssh arti3263@br64-da.valueserver.net.br -p 1157
+   ```
+2. Os arquivos do backend ficam em `/home/arti3263/pasty-backend/`
+3. O processo é gerenciado via PM2 com ecosystem file:
+   ```bash
+   cd /home/arti3263/pasty-backend
+   pm2 start ecosystem.config.cjs
+   pm2 save
+   ```
+4. Configure as variáveis de ambiente no `.env`:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
-   - `GOOGLE_REDIRECT_URI=https://seu-frontend.vercel.app/auth/callback`
+   - `GOOGLE_REDIRECT_URI=https://pasty.ordob.com/auth/callback`
    - `JWT_SECRET`
-   - `FRONTEND_URL=https://seu-frontend.vercel.app`
-   - `DATABASE_URL=postgres://user:***@host:5432/pasty`
-5. Deploy automático em cada `git push`
+   - `FRONTEND_URL=https://pasty.ordob.com`
+   - `DATABASE_URL=mysql://arti3263_pasty:***@localhost:3306/arti3263_pasty`
+   - `REDIS_URL=redis://localhost:6379`
+   - `PORT=3001`
+5. O backend é proxy reverso pelo DirectAdmin em `pasty-api.ordob.com`
 
 ## 📁 Estrutura
 
@@ -91,7 +101,8 @@ pasty/
 │   ├── src/
 │   │   ├── index.ts      → App Hono com rotas
 │   │   ├── config.ts     → Variáveis de ambiente
-│   │   ├── db.ts         → PostgreSQL (pg) + queries
+│   │   ├── db.ts         → MySQL (mysql2) + queries
+│   │   ├── redis.ts      → Redis (ioredis) cache
 │   │   ├── auth.ts       → OAuth Google
 │   │   ├── middleware.ts → JWT middleware
 │   │   └── services/
@@ -100,7 +111,7 @@ pasty/
 │   │       └── gmail.ts  → Gmail Drafts API
 │   ├── package.json
 │   ├── tsconfig.json
-│   └── Procfile
+│   └── ecosystem.config.cjs
 ├── frontend/
 │   ├── src/
 │   │   ├── App.tsx       → App principal com rotas
@@ -159,5 +170,5 @@ MIT
 
 ---
 
-**OrdoB Pasty** – Produtividade simples, integrada ao ecossistema OrdoB.  
+**OrdoB Pasty** — Produtividade simples, integrada ao ecossistema OrdoB.  
 Feito com ❤️ por Wesley Alves e equipe OrdoB™

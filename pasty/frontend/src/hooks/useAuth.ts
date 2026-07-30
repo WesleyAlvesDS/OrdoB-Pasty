@@ -18,7 +18,16 @@ export function useAuth() {
     if (savedToken && savedUser) {
       // Set optimistic state first
       setToken(savedToken)
-      setUser(JSON.parse(savedUser))
+      try {
+        setUser(JSON.parse(savedUser))
+      } catch {
+        localStorage.removeItem(TOKEN_KEY)
+        localStorage.removeItem(USER_KEY)
+        setToken(null)
+        setUser(null)
+        setLoading(false)
+        return
+      }
 
       // Verify token is still valid
       getMe(savedToken)
@@ -37,6 +46,15 @@ export function useAuth() {
     } else {
       setLoading(false)
     }
+
+    // Listen for auth:expired events from api.ts interceptor
+    const handleAuthExpired = () => {
+      console.log('[useAuth] auth:expired event received — clearing session')
+      setToken(null)
+      setUser(null)
+    }
+    window.addEventListener('auth:expired', handleAuthExpired)
+    return () => window.removeEventListener('auth:expired', handleAuthExpired)
   }, [])
 
   /** Handle OAuth callback — exchange code for JWT */
