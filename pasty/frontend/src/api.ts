@@ -4,12 +4,15 @@ import type { AuthResponse, SaveResponse, HistoryResponse } from './types'
 /** API base URL — uses VITE_API_URL in production (Vercel), falls back to '/api' for dev proxy */
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
+const MAX_RETRIES = 2
+const RETRY_DELAY_MS = 1000
+
 const api = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  timeout: 10000,
 })
 
 // ─── Token helpers ───────────────────────────────────────────
@@ -26,17 +29,30 @@ export function clearStoredAuth(): void {
   localStorage.removeItem(USER_KEY)
 }
 
-// ─── Response interceptor: handle 401 globally ──────────────
+// ─── Response interceptor: handle 401 + retry on 5xx ──────
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
-      // Token expired — clear auth so UI can react
       clearStoredAuth()
-      // Dispatch a custom event that AuthGuard/useAuth can listen to
       window.dispatchEvent(new CustomEvent('auth:expired'))
     }
+
+    const config = error.config
+    if (!config || config._retryCount === undefined) {
+      config._retryCount = 0
+    }
+
+    if (
+      config._retryCount < MAX_RETRIES &&
+      (!error.response || error.response.status >= 500)
+    ) {
+      config._retryCount++
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS * config._retryCount))
+      return api(config)
+    }
+
     return Promise.reject(error)
   },
 )
@@ -52,14 +68,27 @@ function authedApi(token: string) {
     timeout: 15000,
   })
 
-  // Also add 401 interceptor to authed instance
+  let retryCount = 0
+
   instance.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
       if (error.response?.status === 401) {
         clearStoredAuth()
         window.dispatchEvent(new CustomEvent('auth:expired'))
       }
+
+      const config = error.config
+      if (
+        config &&
+        retryCount < MAX_RETRIES &&
+        (!error.response || error.response.status >= 500)
+      ) {
+        retryCount++
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS * retryCount))
+        return instance(config)
+      }
+
       return Promise.reject(error)
     },
   )

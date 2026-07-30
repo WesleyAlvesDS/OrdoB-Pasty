@@ -305,20 +305,29 @@ app.get('/api/history', authMiddleware, async (c) => {
 
 // ─── Start ─────────────────────────────────────────────────────
 
-// Initialize database before starting server
-import('./db.js')
-  .then(({ initDatabase }) => {
-    initDatabase()
-    console.log('📦 Database initialized')
+async function startWithDbRetry(maxRetries = 10, delayMs = 3000): Promise<void> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const { initDatabase } = await import('./db.js')
+      await initDatabase()
+      console.log('📦 Database initialized')
+      return
+    } catch (err) {
+      console.error(`Failed to initialize database (attempt ${attempt}/${maxRetries}):`, err)
+      if (attempt < maxRetries) {
+        console.log(`Retrying in ${delayMs / 1000}s...`)
+        await new Promise((resolve) => setTimeout(resolve, delayMs))
+      } else {
+        console.error('Max retries reached — starting without database')
+      }
+    }
+  }
+}
 
-    serve({
-      fetch: app.fetch,
-      port: config.port,
-    })
-
-    console.log(`🚀 Pasty API running on http://localhost:${config.port}`)
+startWithDbRetry().then(() => {
+  serve({
+    fetch: app.fetch,
+    port: config.port,
   })
-  .catch((err) => {
-    console.error('Failed to initialize database:', err)
-    process.exit(1)
-  })
+  console.log(`🚀 Pasty API running on http://localhost:${config.port}`)
+})
