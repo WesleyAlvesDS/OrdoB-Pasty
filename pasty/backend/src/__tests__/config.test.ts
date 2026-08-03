@@ -56,7 +56,7 @@ describe('config', () => {
     expect(config.db.host).toBe('localhost')
     expect(config.db.port).toBe(3306)
     expect(config.db.user).toBe('arti3263_pasty')
-    expect(config.db.password).toBe('Pasty2026OrdoB')
+    expect(config.db.password).toBe('')
     expect(config.db.database).toBe('arti3263_pasty')
     expect(config.db.connectionLimit).toBe(10)
   })

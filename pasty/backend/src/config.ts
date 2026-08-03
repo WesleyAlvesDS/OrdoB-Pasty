@@ -21,7 +21,15 @@ export const config = {
   ],
 
   // JWT
-  jwtSecret: (() => { const s = process.env.JWT_SECRET; if (!s) throw new Error('JWT_SECRET environment variable is required'); return s; })(),
+  // Default 'change-me-in-production' fora de produção (dev/test) — em produção falha rápido se ausente
+  jwtSecret: (() => {
+    const s = process.env.JWT_SECRET
+    if (s) return s
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET environment variable is required')
+    }
+    return 'change-me-in-production'
+  })(),
   jwtExpiryHours: 24,
 
   // MySQL Database

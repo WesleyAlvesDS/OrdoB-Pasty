@@ -59,7 +59,7 @@ describe('rate limiter', () => {
       app.use('/api/test', rateLimiter)
       app.get('/api/test', (c) => c.json({ ok: true }))
 
-      const res = await app.request('/api/test')
+      const res = await app.request('/api/test', { headers: { 'x-forwarded-for': '127.0.0.1' } })
       expect(res.status).toBe(200)
 
       const headers = res.headers
@@ -79,12 +79,12 @@ describe('rate limiter', () => {
       // Default limit is 60, but we set RATE_LIMIT_DEFAULT=20
       // Make 20 requests that should succeed
       for (let i = 0; i < 20; i++) {
-        const res = await app.request('/api/test')
+        const res = await app.request('/api/test', { headers: { 'x-forwarded-for': '127.0.0.1' } })
         expect(res.status).toBe(200)
       }
 
       // The 21st request should be blocked
-      const res = await app.request('/api/test')
+      const res = await app.request('/api/test', { headers: { 'x-forwarded-for': '127.0.0.1' } })
       expect(res.status).toBe(429)
 
       const body = await res.json()
@@ -104,13 +104,13 @@ describe('rate limiter', () => {
 
       // 3 requests should pass (RATE_LIMIT_SAVE=3)
       for (let i = 0; i < 3; i++) {
-        const res = await app.request('/api/save', { method: 'POST' })
+        const res = await app.request('/api/save', { method: 'POST', headers: { 'x-forwarded-for': '127.0.0.1' } })
         expect(res.status).toBe(200)
         expect(res.headers.get('X-RateLimit-Limit')).toBe('3')
       }
 
       // 4th should be blocked
-      const res = await app.request('/api/save', { method: 'POST' })
+      const res = await app.request('/api/save', { method: 'POST', headers: { 'x-forwarded-for': '127.0.0.1' } })
       expect(res.status).toBe(429)
       expect(res.headers.get('X-RateLimit-Limit')).toBe('3')
       expect(res.headers.get('X-RateLimit-Remaining')).toBe('0')
@@ -126,13 +126,13 @@ describe('rate limiter', () => {
 
       // 5 requests should pass (RATE_LIMIT_AUTH=5)
       for (let i = 0; i < 5; i++) {
-        const res = await app.request('/api/auth/login')
+        const res = await app.request('/api/auth/login', { headers: { 'x-forwarded-for': '127.0.0.1' } })
         expect(res.status).toBe(200)
         expect(res.headers.get('X-RateLimit-Limit')).toBe('5')
       }
 
       // 6th should be blocked
-      const res = await app.request('/api/auth/login')
+      const res = await app.request('/api/auth/login', { headers: { 'x-forwarded-for': '127.0.0.1' } })
       expect(res.status).toBe(429)
     })
 
@@ -146,12 +146,12 @@ describe('rate limiter', () => {
 
       // 10 requests should pass (RATE_LIMIT_HISTORY=10)
       for (let i = 0; i < 10; i++) {
-        const res = await app.request('/api/history')
+        const res = await app.request('/api/history', { headers: { 'x-forwarded-for': '127.0.0.1' } })
         expect(res.status).toBe(200)
       }
 
       // 11th should be blocked
-      const res = await app.request('/api/history')
+      const res = await app.request('/api/history', { headers: { 'x-forwarded-for': '127.0.0.1' } })
       expect(res.status).toBe(429)
     })
   })
@@ -165,7 +165,7 @@ describe('rate limiter', () => {
       app.use('/api/test', rateLimiter)
       app.get('/api/test', (c) => c.json({ ok: true }))
 
-      const res = await app.request('/api/test')
+      const res = await app.request('/api/test', { headers: { 'x-forwarded-for': '127.0.0.1' } })
 
       const reset = res.headers.get('X-RateLimit-Reset')
       expect(reset).toBeTruthy()
@@ -187,13 +187,13 @@ describe('rate limiter', () => {
       app.use('/api/test', rateLimiter)
       app.get('/api/test', (c) => c.json({ ok: true }))
 
-      const res1 = await app.request('/api/test')
+      const res1 = await app.request('/api/test', { headers: { 'x-forwarded-for': '127.0.0.1' } })
       expect(res1.headers.get('X-RateLimit-Remaining')).toBe('4')
 
-      const res2 = await app.request('/api/test')
+      const res2 = await app.request('/api/test', { headers: { 'x-forwarded-for': '127.0.0.1' } })
       expect(res2.headers.get('X-RateLimit-Remaining')).toBe('3')
 
-      const res3 = await app.request('/api/test')
+      const res3 = await app.request('/api/test', { headers: { 'x-forwarded-for': '127.0.0.1' } })
       expect(res3.headers.get('X-RateLimit-Remaining')).toBe('2')
     })
   })
