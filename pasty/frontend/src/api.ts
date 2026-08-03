@@ -4,7 +4,7 @@ import type { AuthResponse, SaveResponse, HistoryResponse } from './types'
 /** API base URL — uses VITE_API_URL if set, defaults to api.pasty.ordob.com */
 const API_BASE = import.meta.env.VITE_API_URL
   ? import.meta.env.VITE_API_URL.replace(/\/+$/, '') + '/api'
-  : '/api'
+  : 'https://api.pasty.ordob.com/api'
 
 const MAX_RETRIES = 2
 const RETRY_DELAY_MS = 1000
@@ -98,10 +98,10 @@ function authedApi(token: string) {
   return instance
 }
 
-/** Get the Google OAuth URL and anti-CSRF state token */
-export async function getGoogleAuthUrl(): Promise<{ auth_url: string; state: string }> {
-  const { data } = await api.get<{ auth_url: string; state: string }>('/auth/google/login')
-  return data
+/** Get the Google OAuth URL */
+export async function getGoogleAuthUrl(): Promise<string> {
+  const { data } = await api.get<{ auth_url: string }>('/auth/google/login')
+  return data.auth_url
 }
 
 /** Exchange OAuth code for JWT token */
