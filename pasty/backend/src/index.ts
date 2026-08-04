@@ -24,6 +24,8 @@ import {
   findClipByHash,
   createClip,
   getClipsByUserId,
+  createSession,
+  invalidateSession,
   type DbUser,
 } from './db.js'
 import { createGoogleDoc } from './services/docs.js'
@@ -84,8 +86,8 @@ app.get('/api/health', (c) => c.json({ status: 'ok', version: '1.0.0' }))
 
 // ─── Auth Routes ───────────────────────────────────────────────
 
-app.get('/api/auth/google/login', (c) => {
-  const state = generateState()
+app.get('/api/auth/google/login', async (c) => {
+  const state = await generateState()
   const authUrl = getGoogleAuthUrl(state)
   return c.json({ auth_url: authUrl, state })
 })
@@ -98,7 +100,7 @@ app.post('/api/auth/callback', async (c) => {
     }
 
     // Validate state (CSRF protection)
-    if (!state || !validateState(state)) {
+    if (!state || !(await validateState(state))) {
       console.error('CSRF: invalid or missing state parameter in OAuth callback')
       return c.json({ error: 'Parâmetro de segurança inválido. Tente novamente.' }, 400)
     }
@@ -135,6 +137,10 @@ app.post('/api/auth/callback', async (c) => {
     }
 
     const jwtToken = await createJwtToken(user.id, user.email)
+
+    // Create server-side session
+    const sessionExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    await createSession(jwtToken, user.id, sessionExpiry)
 
     return c.json({
       token: jwtToken,
@@ -173,7 +179,39 @@ app.get('/api/auth/me', authMiddleware, (c) => {
 app.post('/api/auth/refresh', authMiddleware, async (c) => {
   const u = c.var.user
   const newToken = await createJwtToken(u.id, u.email)
+
+  // Invalidate old session and create new one
+  await invalidateSession(c.req.header('Authorization')?.slice(7) ?? '')
+  const sessionExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+  await createSession(newToken, u.id, sessionExpiry)
+
   return c.json({ token: newToken })
+})
+
+// ─── Session Check ─────────────────────────────────────
+
+app.get('/api/auth/session', authMiddleware, (c) => {
+  const u = c.var.user
+  return c.json({
+    authenticated: true,
+    user: {
+      id: u.id,
+      google_id: u.google_id,
+      email: u.email,
+      name: u.name,
+      avatar_url: u.avatar_url,
+      created_at: u.created_at,
+    },
+  })
+})
+
+// ─── Logout ────────────────────────────────────────────
+
+app.post('/api/auth/logout', authMiddleware, async (c) => {
+  const u = c.var.user
+  const token = c.req.header('Authorization')?.slice(7) ?? ''
+  await invalidateSession(token)
+  return c.json({ message: 'Logged out successfully' })
 })
 
 // ─── Save Route (Pasty é gratuito — sem verificação de licença) ─

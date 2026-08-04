@@ -26,6 +26,19 @@ export interface DbClip {
   created_at: string
 }
 
+export interface DbOAuthState {
+  state: string
+  created_at: string
+}
+
+export interface DbSession {
+  token: string
+  user_id: number
+  expires_at: string
+  created_at: string
+  active: boolean
+}
+
 /** Paginated history result */
 export interface PaginatedClips {
   clips: DbClip[]
@@ -116,6 +129,28 @@ export async function initDatabase(): Promise<void> {
   await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_user_dest ON clips(user_id, destination)')
   await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_user_title ON clips(user_id, title)')
   await pool.query('CREATE INDEX IF NOT EXISTS idx_users_google ON users(google_id)')
+
+  // OAuth states table
+  await pool.query(`CREATE TABLE IF NOT EXISTS oauth_states (
+    state VARCHAR(36) PRIMARY KEY,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`)
+
+  // Cleanup expired states older than 1 hour
+  await pool.query('DELETE FROM oauth_states WHERE created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)')
+
+  // Sessions table
+  await pool.query(`CREATE TABLE IF NOT EXISTS sessions (
+    token VARCHAR(255) PRIMARY KEY,
+    user_id INT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`)
+
+  // Cleanup expired sessions
+  await pool.query('DELETE FROM sessions WHERE expires_at < NOW() OR active = 0')
 
   console.log('📊 MySQL schema ready')
 }
@@ -280,4 +315,61 @@ export async function getClipsByUserId(
     nextCursor: clips.length > 0 ? clips[clips.length - 1].id : null,
     total: (countRows[0] as Record<string, unknown>).count as number,
   }
+}
+
+
+// ─── OAuth State Queries ──────────────────────────────
+
+export async function storeOAuthState(state: string): Promise<void> {
+  await pool.query(
+    'INSERT INTO oauth_states (state) VALUES (?)',
+    [state],
+  )
+}
+
+export async function consumeOAuthState(state: string): Promise<boolean> {
+  const [rows] = await pool.query<mysql.RowDataPacket[]>(
+    'SELECT state FROM oauth_states WHERE state = ?',
+    [state],
+  )
+  if (rows.length === 0) return false
+  await pool.query('DELETE FROM oauth_states WHERE state = ?', [state])
+  return true
+}
+
+// ─── Session Queries ──────────────────────────────────
+
+export async function createSession(token: string, userId: number, expiresAt: string): Promise<void> {
+  await pool.query(
+    'INSERT INTO sessions (token, user_id, expires_at, active) VALUES (?, ?, ?, 1)',
+    [token, userId, expiresAt],
+  )
+}
+
+export async function findSession(token: string): Promise<DbSession | undefined> {
+  const [rows] = await pool.query<mysql.RowDataPacket[]>(
+    'SELECT * FROM sessions WHERE token = ? AND active = 1',
+    [token],
+  )
+  if (rows.length === 0) return undefined
+  const row = rows[0] as Record<string, unknown>
+  if (new Date(row.expires_at as string) <= new Date()) {
+    await pool.query('UPDATE sessions SET active = 0 WHERE token = ?', [token])
+    return undefined
+  }
+  return {
+    token: row.token as string,
+    user_id: row.user_id as number,
+    expires_at: row.expires_at as string,
+    created_at: row.created_at as string,
+    active: true,
+  }
+}
+
+export async function invalidateSession(token: string): Promise<void> {
+  await pool.query('UPDATE sessions SET active = 0 WHERE token = ?', [token])
+}
+
+export async function invalidateAllUserSessions(userId: number): Promise<void> {
+  await pool.query('UPDATE sessions SET active = 0 WHERE user_id = ?', [userId])
 }

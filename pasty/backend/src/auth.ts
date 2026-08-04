@@ -1,40 +1,22 @@
 import crypto from 'node:crypto'
 import { config } from './config.js'
+import { storeOAuthState, consumeOAuthState } from './db.js'
 
-// ─── CSRF State Store (in-memory com expiração) ────────────
+// ─── CSRF State Store (persistent via MySQL) ────────────
 
-interface StoredState {
-  state: string
-  expiresAt: number
-}
-
-const stateStore = new Map<string, StoredState>()
 const STATE_TTL_MS = 10 * 60 * 1000 // 10 minutos
 
-// Limpeza periódica de states expirados
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, value] of stateStore) {
-    if (value.expiresAt <= now) stateStore.delete(key)
-  }
-}, 60_000)
-
 /** Generate a random state token for CSRF protection and store it. */
-export function generateState(): string {
+export async function generateState(): Promise<string> {
   const state = crypto.randomUUID()
-  stateStore.set(state, { state, expiresAt: Date.now() + STATE_TTL_MS })
+  await storeOAuthState(state)
   return state
 }
 
 /** Validate that a state token exists and hasn't expired. */
-export function validateState(state: string): boolean {
-  const stored = stateStore.get(state)
-  if (!stored) return false
-  if (stored.expiresAt <= Date.now()) {
-    stateStore.delete(state)
-    return false
-  }
-  stateStore.delete(state) // Consume (one-time use)
+export async function validateState(state: string): Promise<boolean> {
+  const consumed = await consumeOAuthState(state)
+  if (!consumed) return false
   return true
 }
 

@@ -105,8 +105,8 @@ function getClientIp(c: Context): string {
     const addr = (c as any).env?.server?.addr
     if (addr?.address) return addr.address
   } catch {}
-  // Last resort: generate a hash from a random seed (better than all using 'unknown')
-  return `unknown_${Math.random().toString(36).slice(2, 8)}`
+  // Last resort: use a consistent identifier based on connection info
+  return `unknown_${c.req.header('x-forwarded-for') ?? c.req.header('x-real-ip') ?? 'direct'}`
 }
 
 /** Resolve the route group for a given path. */

@@ -42,7 +42,7 @@ function cacheSet<T>(key: string, data: T, ttlMs: number = CACHE_TTL_MS): void {
 /** Hash SHA-256 para chave de cache a partir do token completo */
 function tokenCacheKey(token: string): string {
   const hash = crypto.createHash('sha256').update(token).digest('hex').slice(0, 16)
-  return `ordob_token_${hash}`
+  return 'ordob_token_' + hash
 }
 
 // Limpar cache expirado a cada 10 minutos
@@ -86,9 +86,9 @@ export async function validateOrdoBToken(token: string): Promise<OrdoBAuthRespon
   if (cached) return cached
 
   try {
-    const res = await fetch(`${config.ordobApiUrl}/v1/user`, {
+    const res = await fetch(config.ordobApiUrl + '/v1/user', {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: 'Bearer ' + token,
         Accept: 'application/json',
       },
     })
@@ -114,7 +114,7 @@ export async function validateOrdoBToken(token: string): Promise<OrdoBAuthRespon
     return result
   } catch {
     const result: OrdoBAuthResponse = { authenticated: false, user: null }
-    cacheSet(cacheKey, result, 30_000) // Cache errors for 30s only
+    cacheSet(cacheKey, result, 30000) // Cache errors for 30s only
     return result
   }
 }
@@ -144,9 +144,11 @@ export const ordobMiddleware = createMiddleware<{ Variables: OrdoBVariables }>(
 
     const token = authHeader.slice(7)
 
-    // Check if this looks like a Pasty JWT (3 dot-separated base64 parts)
-    const isPastyJwt = token.split('.').length === 3 && token.length > 100
-    if (isPastyJwt) {
+    // Pasty JWTs are standard JWTs (3 base64 parts separated by dots)
+    // OrdoB Sanctum tokens are typically long random strings (no dots)
+    // Skip OrdoB validation for JWT-formatted tokens (Pasty frontend tokens)
+    const isJwtFormat = token.split('.').length === 3
+    if (isJwtFormat) {
       c.set('ordobUser', null)
       c.set('ordobToken', null)
       c.set('ordobAuthenticated', false)

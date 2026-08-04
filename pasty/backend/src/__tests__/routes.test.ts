@@ -28,6 +28,8 @@ vi.mock('../db.js', () => ({
     ...user,
   })),
   updateUserTokens: vi.fn(),
+  createSession: vi.fn(async () => {}),
+  invalidateSession: vi.fn(async () => {}),
   findClipByHash: vi.fn(async () => undefined),
   createClip: vi.fn(async (clip: Record<string, unknown>) => ({
     id: 1,
