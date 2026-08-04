@@ -56,8 +56,8 @@ npm run dev
 ### 4. Acesse
 
 - Frontend: http://localhost:5173
-- Backend API: http://localhost:3001
-- Health check: http://localhost:3001/api/health
+- Backend API: http://localhost:8000
+- Health check: http://localhost:8000/api/health
 
 ## 🌐 Deploy
 
@@ -66,7 +66,7 @@ npm run dev
 1. Conecte o repositório GitHub ao Vercel
 2. Importe o projeto `pasty/frontend`
 3. Configure a variável de ambiente:
-   - `VITE_API_URL=https://pasty-api.ordob.com`
+   - `VITE_API_URL=https://api.pasty.ordob.com`
 4. Deploy automático em cada `git push`
 
 ### Backend (ValueHost — DirectAdmin + PM2)
@@ -90,8 +90,8 @@ npm run dev
    - `FRONTEND_URL=https://pasty.ordob.com`
    - `DATABASE_URL=mysql://arti3263_pasty:***@localhost:3306/arti3263_pasty`
    - `REDIS_URL=redis://localhost:6379`
-   - `PORT=3001`
-5. O backend é proxy reverso pelo DirectAdmin em `pasty-api.ordob.com`
+   - `PORT=8000`
+5. O backend é proxy reverso pelo DirectAdmin em `api.pasty.ordob.com`
 
 ## 📁 Estrutura
 

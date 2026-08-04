@@ -62,7 +62,7 @@ Em nenhuma circunstância o Pasty será responsável por danos diretos, indireto
   },
   {
     title: '9. Contato',
-    content: `Para questões relacionadas a estes Termos de Uso:\n• E-mail: legal@pasty.app\n• Tempo de resposta: até 48 horas úteis\n\nEstes termos são regidos pelas leis da República Federativa do Brasil.`,
+    content: `Para questões relacionadas a estes Termos de Uso:\n• E-mail: legal@ordob.com\n• Tempo de resposta: até 48 horas úteis\n\nEstes termos são regidos pelas leis da República Federativa do Brasil.`,
   },
 ]
 

@@ -39,7 +39,7 @@ Acesse `http://localhost:5173` para desenvolvimento.
 
 | Variável | Descrição | Exemplo |
 |----------|-----------|---------|
-| `VITE_API_URL` | URL base da API backend | `https://pasty-api.ordob.com` |
+| `VITE_API_URL` | URL base da API backend | `https://api.pasty.ordob.com` |
 
 ## Estrutura
 

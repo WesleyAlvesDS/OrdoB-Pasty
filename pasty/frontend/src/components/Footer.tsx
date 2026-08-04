@@ -116,7 +116,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:contato@pasty.app"
+                  href="mailto:contato@ordob.com"
                   className="text-sm text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200 inline-flex items-center gap-2 group"
                 >
                   <span className="text-base" aria-hidden="true">✉️</span>

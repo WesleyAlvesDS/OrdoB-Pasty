@@ -35,7 +35,7 @@ O deploy é dividido em duas partes:
 
 | Variável | Valor |
 |----------|-------|
-| `VITE_API_URL` | `https://pasty-api.ordob.com` |
+| `VITE_API_URL` | `https://api.pasty.ordob.com` |
 
 ### 1.4 Deploy
 
@@ -99,7 +99,7 @@ JWT_SECRET=sua-chave-secreta
 FRONTEND_URL=https://pasty.ordob.com
 DATABASE_URL=mysql://arti3263_pasty:senha@localhost:3306/arti3263_pasty
 REDIS_URL=redis://localhost:6379
-PORT=3001
+PORT=8000
 ```
 
 ### 2.5 Ecosystem file (PM2)
@@ -143,10 +143,10 @@ pm2 restart pasty-backend
 
 ### 2.7 Proxy reverso no DirectAdmin
 
-O DirectAdmin faz proxy reverso de `pasty-api.ordob.com` para `localhost:3001`:
+O DirectAdmin faz proxy reverso de `api.pasty.ordob.com` para `localhost:8000`:
 
 1. No painel DirectAdmin, vá em **Proxy domains** ou **Apache Configuration**
-2. Crie um proxy reverso apontando de `pasty-api.ordob.com` para `http://localhost:3001`
+2. Crie um proxy reverso apontando de `api.pasty.ordob.com` para `http://localhost:8000`
 
 ---
 
@@ -219,7 +219,7 @@ redis-cli ping
 
 ## Verificação Pós-Deploy
 
-- [ ] `GET https://pasty-api.ordob.com/api/health` → `{"status":"ok"}`
+- [ ] `GET https://api.pasty.ordob.com/api/health` → `{"status":"ok"}`
 - [ ] Página inicial `https://pasty.ordob.com` carrega sem erros
 - [ ] Login com Google funciona
 - [ ] Salvar em Docs/Drive/Gmail funciona

@@ -58,7 +58,7 @@ Você pode desabilitar cookies nas configurações do seu navegador, mas algumas
   {
     title: '7. Contato e DPO',
     content: `Para questões sobre privacidade e proteção de dados:
-• E-mail: privacy@pasty.app
+• E-mail: privacy@ordob.com
 • Tempo de resposta: até 48 horas úteis
 • Nos comprometemos a responder todas as solicitações dentro do prazo legal da LGPD`,
   },

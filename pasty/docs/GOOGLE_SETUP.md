@@ -92,11 +92,11 @@ http://localhost:5173
 
 ### Authorized Redirect URIs
 
-O backend do Pasty processa o callback OAuth. Adicione **duas** URIs:
+O **frontend** do Pasty recebe o callback OAuth na rota `/auth/callback` (é para lá que o Google redireciona o usuário após autorizar) e, em seguida, envia o `code` para o backend (`POST /api/auth/callback`), que troca o código por um JWT. Adicione **duas** URIs:
 
 ```
-https://pasty-api.ordob.com/api/auth/google/callback
-http://localhost:3001/api/auth/google/callback
+https://pasty.ordob.com/auth/callback
+http://localhost:5173/auth/callback
 ```
 
 > A URI de redirecionamento precisa corresponder exatamente ao valor de `GOOGLE_REDIRECT_URI` no `.env` do backend.
@@ -153,8 +153,8 @@ Guarde estas informações — você vai precisar para configurar o backend:
 |------------|---------------|
 | **GOOGLE_CLIENT_ID** | Credentials > Sua credencial > Client ID |
 | **GOOGLE_CLIENT_SECRET** | Credentials > Sua credencial > Client Secret |
-| **GOOGLE_REDIRECT_URI (dev)** | `http://localhost:3001/api/auth/google/callback` |
-| **GOOGLE_REDIRECT_URI (prod)** | `https://pasty-api.ordob.com/api/auth/google/callback` |
+| **GOOGLE_REDIRECT_URI (dev)** | `http://localhost:5173/auth/callback` |
+| **GOOGLE_REDIRECT_URI (prod)** | `https://pasty.ordob.com/auth/callback` |
 | **FRONTEND_URL (dev)** | `http://localhost:5173` |
 | **FRONTEND_URL (prod)** | `https://pasty.ordob.com` |
 

@@ -66,7 +66,7 @@ Mês 12:        Extensão Chrome (produto premium) + planos pagos
 ## 🏗️ FASE 1 — Preparação das Contas
 
 ### 1. Domínio
-- `pasty.ordob.com` (frontend) e `pasty-api.ordob.com` (backend)
+- `pasty.ordob.com` (frontend) e `api.pasty.ordob.com` (backend)
 - DNS gerenciado pela OrdoB
 
 ### 2. GitHub
@@ -282,7 +282,7 @@ frontend/src/
 1. Conectar GitHub ao Vercel
 2. Importar projeto: `pasty/frontend`
 3. Configurar variáveis de ambiente:
-   - `VITE_API_URL=https://pasty-api.ordob.com`
+   - `VITE_API_URL=https://api.pasty.ordob.com`
 4. Deploy automático em cada `git push`
 
 ### Backend (ValueHost — DirectAdmin + PM2)
@@ -307,13 +307,13 @@ frontend/src/
    - `FRONTEND_URL=https://pasty.ordob.com`
    - `DATABASE_URL=mysql://arti3263_pasty:***@localhost:3306/arti3263_pasty`
    - `REDIS_URL=redis://localhost:6379`
-   - `PORT=3001`
-5. Backend proxy reverso pelo DirectAdmin em `pasty-api.ordob.com`
+   - `PORT=8000`
+5. Backend proxy reverso pelo DirectAdmin em `api.pasty.ordob.com`
 
 ### Domínio
 
 - `pasty.ordob.com` → Vercel (CNAME)
-- `pasty-api.ordob.com` → DirectAdmin proxy reverso para `localhost:3001`
+- `api.pasty.ordob.com` → DirectAdmin proxy reverso para `localhost:8000`
 - SSL via Cloudflare ou DirectAdmin
 
 ---

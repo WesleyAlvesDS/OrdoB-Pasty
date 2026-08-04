@@ -8,7 +8,7 @@ const steps = [
   {
     step: '01',
     title: 'Acesse o site',
-    desc: 'Abra pasty.app no navegador do seu celular. Faça login com sua conta Google em segundos.',
+    desc: 'Abra pasty.ordob.com no navegador do seu celular. Faça login com sua conta Google em segundos.',
     gradient: 'from-violet-500 to-purple-600',
   },
   {

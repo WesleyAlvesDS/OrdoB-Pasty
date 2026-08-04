@@ -24,8 +24,8 @@ pm2 start ecosystem.config.cjs
 **Erro:** Porta já em uso
 
 ```bash
-# Verifique o que está na porta 3001
-lsof -i :3001
+# Verifique o que está na porta 8000
+lsof -i :8000
 
 # Mate o processo e reinicie
 pm2 delete pasty-backend

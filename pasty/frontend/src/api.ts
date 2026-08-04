@@ -1,10 +1,19 @@
 import axios from 'axios'
 import type { AuthResponse, SaveResponse, HistoryResponse } from './types'
 
-/** API base URL — uses VITE_API_URL if set, defaults to api.pasty.ordob.com */
-const API_BASE = import.meta.env.VITE_API_URL
-  ? import.meta.env.VITE_API_URL.replace(/\/+$/, '') + '/api'
-  : 'https://api.pasty.ordob.com/api'
+/**
+ * Resolve a API base URL a partir de VITE_API_URL.
+ * - Vazio → produção (https://api.pasty.ordob.com/api)
+ * - '/api' → proxy do Vite em dev (NÃO duplica o sufixo)
+ * - 'http://localhost:8000' ou outro host → host + '/api'
+ */
+function resolveApiBase(url: string | undefined): string {
+  if (!url) return 'https://api.pasty.ordob.com/api'
+  const clean = url.replace(/\/+$/, '')
+  return clean.endsWith('/api') ? clean : `${clean}/api`
+}
+
+const API_BASE = resolveApiBase(import.meta.env.VITE_API_URL)
 
 const MAX_RETRIES = 2
 const RETRY_DELAY_MS = 1000

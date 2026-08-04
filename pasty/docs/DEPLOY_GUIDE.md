@@ -5,7 +5,7 @@
 | Camada | Serviço | URL |
 |--------|---------|-----|
 | **Frontend** | Vercel | `https://pasty.ordob.com` |
-| **Backend API** | ValueHost DirectAdmin + PM2 | `https://pasty-api.ordob.com` |
+| **Backend API** | ValueHost DirectAdmin + PM2 | `https://api.pasty.ordob.com` |
 | **Banco MySQL** | ValueHost (porta 3307) | `arti3263_pasty` |
 | **Cache Redis** | ValueHost (opcional) | Configurado via `REDIS_URL` |
 
@@ -18,7 +18,7 @@
 1. Conecte o repositório GitHub à Vercel
 2. Importe o diretório `frontend/`
 3. Configure as variáveis de ambiente:
-   - `VITE_API_URL=https://pasty-api.ordob.com`
+   - `VITE_API_URL=https://api.pasty.ordob.com`
 4. O `vercel.json` já contém:
    - Framework: `vite`
    - Build command: `npm run build`
@@ -72,7 +72,7 @@ nano .env
 # Google OAuth
 GOOGLE_CLIENT_ID=seu-client-id
 GOOGLE_CLIENT_SECRET=seu-client-secret
-GOOGLE_REDIRECT_URI=https://pasty-api.ordob.com/api/auth/google/callback
+GOOGLE_REDIRECT_URI=https://pasty.ordob.com/auth/callback
 
 # JWT
 JWT_SECRET=uma-chave-segura-aqui
@@ -91,7 +91,7 @@ DB_DATABASE=arti3263_pasty
 REDIS_URL=
 
 # Server
-PORT=3001
+PORT=8000
 ```
 
 ### MySQL Setup
@@ -119,7 +119,7 @@ module.exports = {
     exec_mode: 'fork',
     env: {
       NODE_ENV: 'production',
-      PORT: 3001,
+      PORT: 8000,
     },
     error_file: './logs/err.log',
     out_file: './logs/out.log',
@@ -166,7 +166,7 @@ Sem Redis, o rate limiter usa fallback in-memory (funciona para instância únic
 ### Verificação
 
 ```bash
-curl https://pasty-api.ordob.com/api/health
+curl https://api.pasty.ordob.com/api/health
 # → {"status":"ok","version":"1.0.0"}
 ```
 
@@ -184,8 +184,8 @@ curl https://pasty-api.ordob.com/api/health
   - `https://pasty.ordob.com`
   - `http://localhost:5173` (dev)
 - **Authorized Redirect URIs:**
-  - `https://pasty-api.ordob.com/api/auth/google/callback`
-  - `http://localhost:3001/api/auth/google/callback`
+  - `https://pasty.ordob.com/auth/callback`
+  - `http://localhost:5173/auth/callback`
 
 ### Escopos
 - `.../auth/documents`, `.../auth/drive.file`, `.../auth/gmail.compose`, `openid`, `email`, `profile`

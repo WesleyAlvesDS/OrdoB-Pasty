@@ -13,8 +13,8 @@
   - `https://pasty.ordob.com`
   - `http://localhost:5173` (dev)
 - [ ] Authorized Redirect URIs configuradas:
-  - `https://pasty-api.ordob.com/api/auth/google/callback` (prod)
-  - `http://localhost:3001/api/auth/google/callback` (dev)
+  - `https://pasty.ordob.com/auth/callback` (prod)
+  - `http://localhost:5173/auth/callback` (dev)
 - [ ] Seu e-mail adicionado como Test User (enquanto em Testing)
 
 ---
@@ -39,7 +39,7 @@
 - [ ] Domínio customizado configurado: `pasty.ordob.com`
 - [ ] SSL ativo (Vercel fornece automático)
 - [ ] Variáveis de ambiente configuradas:
-  - `VITE_API_URL=https://pasty-api.ordob.com`
+  - `VITE_API_URL=https://api.pasty.ordob.com`
 - [ ] Rewrites do `vercel.json` funcionando (proxy `/api/*` → backend)
 
 ---
@@ -51,17 +51,17 @@
 - [ ] `npm run build` executado
 - [ ] Arquivo `.env` criado com todas as variáveis:
   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-  - `GOOGLE_REDIRECT_URI=https://pasty-api.ordob.com/api/auth/google/callback`
+  - `GOOGLE_REDIRECT_URI=https://pasty.ordob.com/auth/callback`
   - `JWT_SECRET`
   - `FRONTEND_URL=https://pasty.ordob.com`
   - `DB_HOST`, `DB_PORT=3307`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE`
   - `REDIS_URL` (se aplicável)
-  - `PORT=3001`
+  - `PORT=8000`
 - [ ] MySQL configurado e banco `arti3263_pasty` criado (porta 3307)
 - [ ] PM2 rodando o processo: `pm2 start ecosystem.config.cjs` ou `pm2 start dist/index.js --name pasty-backend`
 - [ ] PM2 salvo no startup: `pm2 save && pm2 startup`
-- [ ] Porta 3001 liberada no firewall do DirectAdmin
-- [ ] Health check: `curl https://pasty-api.ordob.com/api/health` → `{"status":"ok"}`
+- [ ] Porta 8000 liberada no firewall do DirectAdmin
+- [ ] Health check: `curl https://api.pasty.ordob.com/api/health` → `{"status":"ok"}`
 
 ---
 
@@ -104,7 +104,7 @@
 
 - [ ] PM2 status ok: `pm2 status` (pasty-backend online)
 - [ ] Logs sem erros: `pm2 logs pasty-backend --lines 50`
-- [ ] Uptime Robot configurado monitorando `https://pasty-api.ordob.com/api/health`
+- [ ] Uptime Robot configurado monitorando `https://api.pasty.ordob.com/api/health`
 
 ---
 
