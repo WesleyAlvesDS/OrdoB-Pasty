@@ -59,16 +59,16 @@ export function TextDetect({ text }: TextDetectProps) {
           </div>
           <div className="space-y-1">
             {det.items.map((item, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
+              <div key={i} className="flex items-start gap-2">
+                <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600 flex-shrink-0 mt-1.5" />
                 {item.startsWith('http') ? (
                   <a href={item} target="_blank" rel="noopener noreferrer"
-                    className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline truncate font-mono">{item}</a>
+                    className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline font-mono min-w-0 break-all leading-relaxed">{item}</a>
                 ) : (
-                  <span className="text-[10px] text-gray-600 dark:text-gray-400 truncate font-mono">{item}</span>
+                  <span className="text-[10px] text-gray-600 dark:text-gray-400 font-mono min-w-0 break-all leading-relaxed">{item}</span>
                 )}
                 <button type="button" onClick={() => navigator.clipboard.writeText(item)}
-                  className="ml-auto text-[9px] text-gray-400 hover:text-violet-500 transition-colors flex-shrink-0 cursor-pointer" title="Copiar">📋</button>
+                  className="ml-auto text-[9px] text-gray-400 hover:text-violet-500 transition-colors flex-shrink-0 cursor-pointer mt-0.5" title="Copiar">📋</button>
               </div>
             ))}
           </div>
