@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { User, DestinationInfo, Clip, Destination } from '../types'
+import type { User, Clip, Destination } from '../types'
 import { getGoogleAuthUrl, saveText, getStoredToken } from '../api'
 import { useSaveForm } from '../hooks/useSaveForm'
 import { Header } from '../components/Header'
@@ -49,12 +49,6 @@ interface PendingResult {
   error?: string
 }
 
-const destinations: DestinationInfo[] = [
-  { id: 'docs', label: 'Google Docs', icon: '📄', description: 'Documento formatado', color: 'from-blue-500' },
-  { id: 'drive', label: 'Google Drive', icon: '📁', description: 'Arquivo de texto na nuvem', color: 'from-amber-500' },
-  { id: 'gmail', label: 'Gmail Draft', icon: '✉️', description: 'Rascunho de e-mail', color: 'from-red-500' },
-]
-
 // ─── Component ──────────────────────────────────────────────
 
 interface HomePageProps {
@@ -70,7 +64,17 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
   const toast = useToastActions()
   const [historyKey, setHistoryKey] = useState(0)
   const [pendingResult, setPendingResult] = useState<PendingResult | null>(null)
-  const [showForm, setShowForm] = useState(false)
+  // Formulário aberto por padrão — usuário cola o texto assim que abre o site
+  const [showForm, setShowForm] = useState(true)
+  // Painel de ferramentas no mobile (independente do formulário)
+  const [toolsOpen, setToolsOpen] = useState(false)
+  // Autofoco apenas em desktop (pointer fino e tela ≥ 768px) — no mobile evita abrir o teclado automaticamente
+  const [shouldAutoFocus] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      !window.matchMedia('(pointer: coarse)').matches &&
+      window.matchMedia('(min-width: 768px)').matches,
+  )
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const [authLoading, setAuthLoading] = useState(false)
@@ -246,43 +250,14 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
                 aria-expanded={showForm}
                 aria-controls="save-form"
               >
-                {showForm ? 'Fechar' : 'Começar a usar'}
+                {showForm ? 'Fechar formulário' : 'Começar a usar'}
                 <svg className={`w-4 h-4 transition-transform duration-300 ${showForm ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
             </div>
 
-            {/* ─── Destinations preview ──────────────────────── */}
-            <h2 className="sr-only">Destinos disponíveis</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {destinations.map((dest) => (
-                <div
-                  key={dest.id}
-                  className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 hover:border-violet-200 dark:hover:border-violet-700 transition-all duration-300 hover:shadow-md"
-                >
-                  <span className="text-2xl" aria-hidden="true">{dest.icon}</span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{dest.label}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{dest.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* ─── Success/Error messages ─────────────────────── */}
-            {(showSuccess || showError) && (
-              <Suspense fallback={null}>
-                <SuccessMessage
-                  clip={savedClip ?? pendingResult?.clip ?? null}
-                  duplicate={!!showDuplicate}
-                  error={saveError ?? pendingResult?.error ?? null}
-                  onDismiss={dismissAll}
-                />
-              </Suspense>
-            )}
-
-                {/* ─── Formulario principal ──────────────────────── */}
+            {/* ─── Formulario principal (aberto por padrão) ──── */}
             <div
               id="save-form"
               className={`space-y-4 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm transition-all duration-500 ease-in-out ${
@@ -305,17 +280,17 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
                   className="w-full px-5 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 dark:focus:border-violet-400 transition-all duration-300 text-base shadow-sm"
                 />
               </div>
-              <TextBox text={text} onTextChange={setText} />
+              <TextBox text={text} onTextChange={setText} autoFocus={shouldAutoFocus} />
+
+              {/* Destinos — cards distribuídos, sem cobrir o botão principal */}
+              <DestinationSelector selected={destination} onChange={setDestination} />
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <DestinationSelector selected={destination} onChange={setDestination} />
-                  {text && (
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 hidden sm:block tabular-nums">
-                      Ctrl+Enter
-                    </span>
-                  )}
-                </div>
+                {text && (
+                  <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:block tabular-nums">
+                    Ctrl+Enter para salvar
+                  </span>
+                )}
                 <SaveButton
                   onClick={handleSaveClick}
                   loading={saving}
@@ -355,6 +330,18 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
           )}
         </div>
 
+            {/* ─── Success/Error messages ─────────────────────── */}
+            {(showSuccess || showError) && (
+              <Suspense fallback={null}>
+                <SuccessMessage
+                  clip={savedClip ?? pendingResult?.clip ?? null}
+                  duplicate={!!showDuplicate}
+                  error={saveError ?? pendingResult?.error ?? null}
+                  onDismiss={dismissAll}
+                />
+              </Suspense>
+            )}
+
             {/* ─── Histórico ──────────────────────────────────── */}
             {isAuthenticated && user && token && (
               <div className="animate-slide-up">
@@ -374,19 +361,19 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
             <div className="lg:hidden">
               <button
                 type="button"
-                onClick={() => setShowForm(!showForm)}
+                onClick={() => setToolsOpen(!toolsOpen)}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer mb-3"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 </svg>
-                {showForm ? 'Fechar ferramentas' : 'Ferramentas'}
+                {toolsOpen ? 'Fechar ferramentas' : 'Ferramentas'}
               </button>
             </div>
 
             {/* Tools panel — always visible on desktop, collapsible on mobile via showForm state */}
             <div className={`transition-all duration-500 ease-in-out ${
-              showForm
+              toolsOpen
                 ? 'opacity-100 max-h-[2000px] translate-y-0'
                 : 'opacity-0 max-h-0 overflow-hidden translate-y-4 lg:opacity-100 lg:max-h-[2000px] lg:translate-y-0 lg:overflow-visible'
             }`}>

@@ -22,15 +22,6 @@ export interface Clip {
 /** Supported save destinations */
 export type Destination = 'docs' | 'drive' | 'gmail'
 
-/** Destination metadata */
-export interface DestinationInfo {
-  id: Destination
-  label: string
-  icon: string
-  description: string
-  color: string
-}
-
 /** Response from /api/auth/callback */
 export interface AuthResponse {
   token: string

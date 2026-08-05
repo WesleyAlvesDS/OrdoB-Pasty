@@ -5,34 +5,81 @@ interface DestinationSelectorProps {
   onChange: (dest: Destination) => void
 }
 
-const destinations: { id: Destination; label: string; icon: string }[] = [
-  { id: 'docs', label: 'Google Docs', icon: '📄' },
-  { id: 'drive', label: 'Google Drive', icon: '📁' },
-  { id: 'gmail', label: 'Gmail Draft', icon: '✉️' },
+const destinations: {
+  id: Destination
+  label: string
+  icon: string
+  description: string
+  chip: string
+}[] = [
+  {
+    id: 'docs',
+    label: 'Google Docs',
+    icon: '📄',
+    description: 'Documento formatado',
+    chip: 'from-blue-500 to-blue-600',
+  },
+  {
+    id: 'drive',
+    label: 'Google Drive',
+    icon: '📁',
+    description: 'Arquivo de texto na nuvem',
+    chip: 'from-amber-500 to-orange-600',
+  },
+  {
+    id: 'gmail',
+    label: 'Gmail Draft',
+    icon: '✉️',
+    description: 'Rascunho de e-mail',
+    chip: 'from-red-500 to-rose-600',
+  },
 ]
 
 export function DestinationSelector({ selected, onChange }: DestinationSelectorProps) {
   return (
-    <div className="flex gap-2">
+    <div
+      className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+      role="group"
+      aria-label="Onde salvar o texto"
+    >
       {destinations.map((dest) => {
         const isActive = selected === dest.id
         return (
           <button
             key={dest.id}
             type="button"
+            aria-pressed={isActive}
             onClick={() => onChange(dest.id)}
             aria-label={`Salvar em ${dest.label}`}
-            aria-pressed={isActive}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all duration-300 ease-out cursor-pointer ${
+            className={`group flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all duration-300 ease-out cursor-pointer ${
               isActive
-                ? 'border-violet-500 dark:border-violet-400 bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300 shadow-md shadow-violet-200/50 dark:shadow-violet-950/50 scale-[1.02]'
-                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:border-violet-300 dark:hover:border-violet-600 hover:bg-violet-50/50 dark:hover:bg-violet-950/20 hover:text-violet-600 dark:hover:text-violet-400 hover:shadow-sm hover:scale-[1.01]'
+                ? 'border-violet-500 dark:border-violet-400 bg-violet-50/80 dark:bg-violet-950/40 shadow-lg shadow-violet-200/60 dark:shadow-violet-950/40 scale-[1.02]'
+                : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-violet-50/50 dark:hover:bg-violet-950/20 hover:shadow-md hover:scale-[1.01]'
             }`}
           >
-            <span className={`text-base transition-transform duration-300 ${isActive ? 'scale-110' : ''}`}>
+            <span
+              className={`flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br ${dest.chip} text-white text-lg shadow-md transition-transform duration-300 ${
+                isActive ? 'scale-110' : 'group-hover:scale-105'
+              }`}
+              aria-hidden="true"
+            >
               {dest.icon}
             </span>
-            {dest.label}
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-gray-900 dark:text-white truncate">
+                {dest.label}
+              </span>
+              <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">
+                {dest.description}
+              </span>
+            </span>
+            {isActive && (
+              <span className="flex items-center justify-center w-5 h-5 shrink-0 rounded-full bg-violet-500 text-white" aria-hidden="true">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </span>
+            )}
           </button>
         )
       })}
