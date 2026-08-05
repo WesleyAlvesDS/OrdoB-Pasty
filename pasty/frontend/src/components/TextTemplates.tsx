@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import { Tooltip } from './Tooltip'
 
 interface Template {
   id: string
@@ -100,22 +101,24 @@ export function TextTemplates({ text, onTextChange, onTitleChange }: TextTemplat
         ) : (
           <div className="space-y-1.5 max-h-48 overflow-y-auto">
             {templates.map((tpl) => (
-              <div key={tpl.id}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 border border-transparent hover:border-gray-200 dark:hover:border-gray-800 transition-all duration-200 group cursor-pointer"
-                onClick={() => loadTemplate(tpl)}
-              >
-                <span className="text-base">📄</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{tpl.name}</p>
-                  <p className="text-[9px] text-gray-400 dark:text-gray-500">{tpl.content.length} caracteres · {new Date(tpl.createdAt).toLocaleDateString('pt-BR')}</p>
+              <Tooltip key={tpl.id} label={`Carregar "${tpl.name}"`}>
+                <div
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-900 border border-transparent hover:border-gray-200 dark:hover:border-gray-800 transition-all duration-200 group cursor-pointer"
+                  onClick={() => loadTemplate(tpl)}
+                >
+                  <span className="text-base">📄</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{tpl.name}</p>
+                    <p className="text-[9px] text-gray-400 dark:text-gray-500">{tpl.content.length} caracteres · {new Date(tpl.createdAt).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); deleteTemplate(tpl) }}
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-200 cursor-pointer" title="Excluir modelo">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                 </div>
-                <button type="button" onClick={(e) => { e.stopPropagation(); deleteTemplate(tpl) }}
-                  className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-200 cursor-pointer" title="Excluir modelo">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
+              </Tooltip>
             ))}
           </div>
         )}

@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { Tooltip } from './Tooltip'
 
 interface TextCleanupProps {
   text: string
@@ -33,18 +34,19 @@ export function TextCleanup({ text, onTextChange }: TextCleanupProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
       {cleanupActions.map((action) => (
-        <button
-          key={action.label}
-          type="button"
-          onClick={() => applyCleanup(action.fn)}
-          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:shadow-sm transition-all duration-200 text-left cursor-pointer group min-w-0"
-        >
-          <span className="text-base flex-shrink-0 w-7 h-7 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">{action.icon}</span>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{action.label}</p>
-            <p className="text-[9px] text-gray-400 dark:text-gray-500 truncate">{action.desc}</p>
-          </div>
-        </button>
+        <Tooltip key={action.label} label={`${action.label} — ${action.desc}`}>
+          <button
+            type="button"
+            onClick={() => applyCleanup(action.fn)}
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:shadow-sm transition-all duration-200 text-left cursor-pointer group min-w-0 w-full"
+          >
+            <span className="text-base flex-shrink-0 w-7 h-7 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">{action.icon}</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{action.label}</p>
+              <p className="text-[9px] text-gray-400 dark:text-gray-500 truncate">{action.desc}</p>
+            </div>
+          </button>
+        </Tooltip>
       ))}
     </div>
   )
