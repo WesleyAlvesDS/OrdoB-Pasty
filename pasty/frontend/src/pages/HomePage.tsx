@@ -10,7 +10,13 @@ import { LogoutDialog } from '../components/AuthGuard'
 import { useToastActions } from '../components/Toast'
 import { Footer } from '../components/Footer'
 import { QRCode } from '../components/QRCode'
-import { TextTools } from '../components/TextTools'
+import {
+  TextTools,
+  ALL_TOOLS,
+  loadToolsPref,
+  saveToolsPref,
+  type ToolKey,
+} from '../components/TextTools'
 
 // Lazy import components that are not needed immediately
 const TextBox = lazy(() =>
@@ -68,6 +74,9 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
   const [showForm, setShowForm] = useState(true)
   // Painel de ferramentas no mobile (independente do formulário)
   const [toolsOpen, setToolsOpen] = useState(false)
+  // Ferramentas que o usuário escolhe exibir (persistido em localStorage)
+  const [toolsEnabled, setToolsEnabled] = useState<ToolKey[]>(loadToolsPref)
+  const [toolsSettingsOpen, setToolsSettingsOpen] = useState(false)
   // Autofoco apenas em desktop (pointer fino e tela ≥ 768px) — no mobile evita abrir o teclado automaticamente
   const [shouldAutoFocus] = useState(
     () =>
@@ -145,7 +154,35 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
     }
   }, [onCallback, toast])
 
+  // ─── Detect pastebin shared link on mount ──────────────────
+
+  useEffect(() => {
+    const hash = window.location.hash
+    if (hash.startsWith('#share=')) {
+      try {
+        const encoded = hash.replace('#share=', '')
+        const decoded = decodeURIComponent(atob(encoded))
+        if (decoded && decoded !== text) {
+          setText(decoded)
+          window.location.hash = ''
+        }
+      } catch {
+        // Invalid share link
+      }
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // ─── Handlers ───────────────────────────────────────────────
+
+  const toggleTool = useCallback((key: ToolKey) => {
+    setToolsEnabled((prev) => {
+      const next = prev.includes(key)
+        ? prev.filter((k) => k !== key)
+        : [...prev, key]
+      saveToolsPref(next)
+      return next
+    })
+  }, [])
 
   const handleLogin = useCallback(async () => {
     try {
@@ -223,10 +260,22 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
           </div>
         )}
 
-        {/* ─── Grid Layout: main content + sidebar tools ──── */}
-        <div className="lg:grid lg:grid-cols-3 lg:gap-8">
-          {/* ─── Left Column: Hero + Form ───────────────── */}
-          <div className="lg:col-span-2 space-y-6">
+        {/* ─── Grid Layout: floating tools on both sides, main centered ──── */}
+        <div className="lg:grid lg:grid-cols-[1fr_minmax(0,2fr)_1fr] lg:gap-6 lg:items-start">
+          {/* ─── Left Column: floating tools (3) ─────────── */}
+          <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start space-y-4" aria-label="Ferramentas à esquerda">
+            <TextTools
+              side="left"
+              enabled={toolsEnabled}
+              text={text}
+              title={title}
+              onTextChange={setText}
+              onTitleChange={setTitle}
+            />
+          </aside>
+
+          {/* ─── Center Column: Hero + Form ──────────────── */}
+          <div className="space-y-6 min-w-0">
 
             {/* ─── Hero branding ──────────────────────────────── */}
             <div className="text-center animate-fade-in">
@@ -355,38 +404,109 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
             )}
           </div>
 
-          {/* ─── Right Column: Text Tools Sidebar ──────── */}
-          <div className="lg:col-span-1 mt-8 lg:mt-0 lg:sticky lg:top-24 lg:self-start">
-            {/* Mobile toggle button */}
-            <div className="lg:hidden">
-              <button
-                type="button"
-                onClick={() => setToolsOpen(!toolsOpen)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer mb-3"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                </svg>
-                {toolsOpen ? 'Fechar ferramentas' : 'Ferramentas'}
-              </button>
-            </div>
+          {/* ─── Right Column: floating tools (2) ────────── */}
+          <aside className="hidden lg:block lg:sticky lg:top-24 lg:self-start space-y-4" aria-label="Ferramentas à direita">
+            <TextTools
+              side="right"
+              enabled={toolsEnabled}
+              text={text}
+              title={title}
+              onTextChange={setText}
+              onTitleChange={setTitle}
+            />
+          </aside>
+        </div>
 
-            {/* Tools panel — always visible on desktop, collapsible on mobile via showForm state */}
-            <div className={`transition-all duration-500 ease-in-out ${
+        {/* ─── Mobile tools panel (collapsible) ──────────── */}
+        <div className="lg:hidden mt-8">
+          <button
+            type="button"
+            onClick={() => setToolsOpen(!toolsOpen)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer mb-3"
+            aria-expanded={toolsOpen}
+            aria-controls="tools-panel-mobile"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            </svg>
+            {toolsOpen ? 'Fechar ferramentas' : 'Ferramentas'}
+          </button>
+
+          <div
+            id="tools-panel-mobile"
+            className={`transition-all duration-500 ease-in-out ${
               toolsOpen
                 ? 'opacity-100 max-h-[2000px] translate-y-0'
-                : 'opacity-0 max-h-0 overflow-hidden translate-y-4 lg:opacity-100 lg:max-h-[2000px] lg:translate-y-0 lg:overflow-visible'
-            }`}>
-              <div className="animate-slide-up">
-                <TextTools
-                  text={text}
-                  title={title}
-                  onTextChange={setText}
-                  onTitleChange={setTitle}
-                />
-              </div>
+                : 'opacity-0 max-h-0 overflow-hidden translate-y-4'
+            }`}
+          >
+            <div className="space-y-4 animate-slide-up">
+              <TextTools
+                side="left"
+                enabled={toolsEnabled}
+                text={text}
+                title={title}
+                onTextChange={setText}
+                onTitleChange={setTitle}
+              />
+              <TextTools
+                side="right"
+                enabled={toolsEnabled}
+                text={text}
+                title={title}
+                onTextChange={setText}
+                onTitleChange={setTitle}
+              />
             </div>
           </div>
+        </div>
+
+        {/* ─── Floating tools settings (choose which to show) ── */}
+        <div className="fixed bottom-6 right-6 z-40">
+          <button
+            type="button"
+            onClick={() => setToolsSettingsOpen((o) => !o)}
+            aria-label="Configurar ferramentas"
+            aria-expanded={toolsSettingsOpen}
+            className="flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-semibold shadow-lg shadow-violet-600/30 hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            </svg>
+            <span className="hidden sm:inline">Ferramentas</span>
+          </button>
+
+          {toolsSettingsOpen && (
+            <div className="absolute bottom-16 right-0 w-72 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden animate-scale-in z-50">
+              <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">Ferramentas ativas</span>
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 tabular-nums">{toolsEnabled.length}/{ALL_TOOLS.length}</span>
+              </div>
+              <div className="p-2">
+                {ALL_TOOLS.map((tool) => {
+                  const checked = toolsEnabled.includes(tool.key)
+                  return (
+                    <label
+                      key={tool.key}
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleTool(tool.key)}
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-violet-600 focus:ring-violet-500 cursor-pointer"
+                        aria-label={`Ativar ${tool.label}`}
+                      />
+                      <span className="text-sm">{tool.icon}</span>
+                      <span className={`text-sm flex-1 ${checked ? 'text-gray-800 dark:text-gray-200' : 'text-gray-400 dark:text-gray-500 line-through'}`}>
+                        {tool.label}
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
