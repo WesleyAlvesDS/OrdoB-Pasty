@@ -274,8 +274,8 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
             />
           </aside>
 
-          {/* ─── Center Column: Hero + Form ──────────────── */}
-          <div className="space-y-6 min-w-0">
+          {/* ─── Center Column: Hero + Form (estático e centralizado) ── */}
+          <div className="w-full max-w-2xl mx-auto space-y-6 min-w-0">
 
             {/* ─── Hero branding ──────────────────────────────── */}
             <div className="text-center animate-fade-in">

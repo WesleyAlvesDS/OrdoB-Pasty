@@ -76,9 +76,9 @@ export function TextStats({ text }: TextStatsProps) {
           <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 font-medium">Palavras mais frequentes</p>
           <div className="flex flex-wrap gap-1.5">
             {stats.topWords.map(([word, count]) => (
-              <span key={word} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-[10px] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
-                {word}
-                <span className="font-bold text-violet-500">{count}</span>
+              <span key={word} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-[10px] text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 max-w-full">
+                <span className="min-w-0 break-all leading-tight">{word}</span>
+                <span className="font-bold text-violet-500 flex-shrink-0">{count}</span>
               </span>
             ))}
           </div>

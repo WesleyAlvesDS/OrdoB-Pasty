@@ -84,11 +84,11 @@ export function TextExport({ text, title }: TextExportProps) {
         <div className="grid grid-cols-3 gap-2">
           {downloadOpts.map((opt) => (
             <button key={opt.format} type="button" onClick={() => downloadAsFile(opt.format)}
-              className="flex flex-col items-center gap-1.5 px-3 py-4 rounded-xl text-white shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
+              className="flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-xl text-white shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer min-w-0"
               style={{ background: `linear-gradient(135deg, ${opt.from}, ${opt.to})` }}
             >
               <span className="text-lg">{opt.icon}</span>
-              <span className="text-[9px] font-medium text-center leading-tight">{opt.label}</span>
+              <span className="text-[9px] font-medium text-center leading-tight truncate w-full">{opt.label}</span>
             </button>
           ))}
         </div>

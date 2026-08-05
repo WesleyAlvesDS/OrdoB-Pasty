@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { TextStats } from './TextStats'
 import { TextCleanup } from './TextCleanup'
 import { TextExport } from './TextExport'
@@ -74,20 +75,43 @@ export function ToolCard({
   onTextChange,
   onTitleChange,
 }: Omit<ToolBodyProps, 'def'> & { def: ToolDef }) {
+  const [open, setOpen] = useState(true)
+
   return (
     <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-      <div className={`px-4 py-2.5 flex items-center gap-2 bg-gradient-to-r ${def.header}`}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className={`w-full px-4 py-2.5 flex items-center gap-2 bg-gradient-to-r ${def.header} transition-opacity hover:opacity-90 cursor-pointer`}
+      >
         <span className="text-sm">{def.icon}</span>
-        <span className="text-xs font-semibold text-white">{def.label}</span>
-      </div>
-      <div className="p-4">
-        <ToolBody
-          def={def}
-          text={text}
-          title={title}
-          onTextChange={onTextChange}
-          onTitleChange={onTitleChange}
-        />
+        <span className="text-xs font-semibold text-white flex-1 text-left">{def.label}</span>
+        <svg
+          className={`w-3.5 h-3.5 text-white/80 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div
+        className={`transition-all duration-300 ease-in-out ${
+          open ? 'opacity-100 max-h-[3000px]' : 'opacity-0 max-h-0 overflow-hidden'
+        }`}
+      >
+        <div className="p-4">
+          <ToolBody
+            def={def}
+            text={text}
+            title={title}
+            onTextChange={onTextChange}
+            onTitleChange={onTitleChange}
+          />
+        </div>
       </div>
     </div>
   )
