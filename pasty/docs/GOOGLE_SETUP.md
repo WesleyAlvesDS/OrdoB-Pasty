@@ -132,7 +132,7 @@ Após criar ou alterar as credenciais no Google Cloud Console:
 
 2. Edite o arquivo `.env` no backend:
    ```bash
-   cd /home/arti3263/pasty-backend
+   cd /home/arti3263/domains/api.pasty.ordob.com/public_html/OrdoB-Pasty/pasty/backend
    nano .env
    ```
 
@@ -140,8 +140,22 @@ Após criar ou alterar as credenciais no Google Cloud Console:
 
 4. Reinicie o PM2:
    ```bash
-   pm2 restart pasty-backend
+   pm2 restart pasty-api
    ```
+
+---
+
+## Troubleshooting: Erro 400 `redirect_uri_mismatch`
+
+Se o login mostra **"Erro 400: redirect_uri_mismatch"**, a `redirect_uri` enviada pelo backend **não corresponde exatamente** a uma das URIs registradas no Google Cloud Console.
+
+1. O backend envia o valor de `GOOGLE_REDIRECT_URI` do `.env`. Em produção deve ser:
+   ```
+   GOOGLE_REDIRECT_URI=https://pasty.ordob.com/auth/callback
+   ```
+2. Confira no **APIs & Services > Credentials** (do Client ID usado) que esta URI está em **Authorized Redirect URIs** — caractere por caractere, sem barra final extra.
+3. Confira também em **Authorized JavaScript Origins**: `https://pasty.ordob.com`.
+4. Se o app estiver em modo **Testing**, o e-mail que faz login precisa estar em **Test users**.
 
 ---
 

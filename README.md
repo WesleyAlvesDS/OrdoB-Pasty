@@ -75,10 +75,10 @@ npm run dev
    ```bash
    ssh arti3263@br64-da.valueserver.net.br -p 1157
    ```
-2. Os arquivos do backend ficam em `/home/arti3263/pasty-backend/`
+2. Os arquivos do backend ficam em `/home/arti3263/domains/api.pasty.ordob.com/public_html/OrdoB-Pasty/pasty/backend`
 3. O processo é gerenciado via PM2 com ecosystem file:
    ```bash
-   cd /home/arti3263/pasty-backend
+   cd /home/arti3263/domains/api.pasty.ordob.com/public_html/OrdoB-Pasty/pasty/backend
    pm2 start ecosystem.config.cjs
    pm2 save
    ```
@@ -88,10 +88,19 @@ npm run dev
    - `GOOGLE_REDIRECT_URI=https://pasty.ordob.com/auth/callback`
    - `JWT_SECRET`
    - `FRONTEND_URL=https://pasty.ordob.com`
-   - `DATABASE_URL=mysql://arti3263_pasty:***@localhost:3306/arti3263_pasty`
-   - `REDIS_URL=redis://localhost:6379`
+   - `DB_HOST=localhost` · `DB_PORT=3306` · `DB_USER=arti3263_pasty` · `DB_DATABASE=arti3263_pasty`
+   - `REDIS_URL=unix:///home/arti3263/.redis/redis.sock`
    - `PORT=8000`
 5. O backend é proxy reverso pelo DirectAdmin em `api.pasty.ordob.com`
+
+### Deploy automático (Windows)
+
+Use o script geral `deploy.ps1` (raiz de `projetos_git`):
+
+```powershell
+.\deploy.ps1 -Project pasty-backend    # backend → ValueHost PM2
+.\deploy.ps1 -Project pasty-frontend   # frontend → Vercel
+```
 
 ## 📁 Estrutura
 

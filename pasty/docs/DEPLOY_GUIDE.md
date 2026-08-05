@@ -6,8 +6,8 @@
 |--------|---------|-----|
 | **Frontend** | Vercel | `https://pasty.ordob.com` |
 | **Backend API** | ValueHost DirectAdmin + PM2 | `https://api.pasty.ordob.com` |
-| **Banco MySQL** | ValueHost (porta 3307) | `arti3263_pasty` |
-| **Cache Redis** | ValueHost (opcional) | Configurado via `REDIS_URL` |
+| **Banco MySQL** | ValueHost (porta 3306) | `arti3263_pasty` |
+| **Cache Redis** | ValueHost (socket `unix:///home/arti3263/.redis/redis.sock`) | Via `REDIS_URL` |
 
 ---
 
@@ -80,15 +80,15 @@ JWT_SECRET=uma-chave-segura-aqui
 # Frontend
 FRONTEND_URL=https://pasty.ordob.com
 
-# MySQL (ValueHost porta 3307)
+# MySQL (ValueHost porta 3306, host localhost via socket)
 DB_HOST=localhost
-DB_PORT=3307
+DB_PORT=3306
 DB_USER=arti3263_pasty
 DB_PASSWORD=sua-senha
 DB_DATABASE=arti3263_pasty
 
-# Redis (opcional — para rate limiting compartilhado)
-REDIS_URL=
+# Redis (socket UNIX do ValueHost)
+REDIS_URL=unix:///home/arti3263/.redis/redis.sock
 
 # Server
 PORT=8000
@@ -96,7 +96,7 @@ PORT=8000
 
 ### MySQL Setup
 
-O MySQL roda no próprio DirectAdmin (porta 3307). Crie o banco:
+O MySQL roda no próprio DirectAdmin (porta **3306**). **Importante:** use `DB_HOST=localhost` (socket), não `127.0.0.1`. Crie o banco:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS arti3263_pasty
@@ -113,19 +113,22 @@ Crie um arquivo `ecosystem.config.cjs` no diretório do backend:
 ```javascript
 module.exports = {
   apps: [{
-    name: 'pasty-backend',
+    name: 'pasty-api',
     script: './dist/index.js',
+    cwd: '/home/arti3263/domains/api.pasty.ordob.com/public_html/OrdoB-Pasty/pasty/backend',
     instances: 1,
-    exec_mode: 'fork',
+    exec_mode: 'cluster',
+    autorestart: true,
+    max_memory_restart: '256M',
     env: {
       NODE_ENV: 'production',
       PORT: 8000,
     },
-    error_file: './logs/err.log',
-    out_file: './logs/out.log',
+    error_file: '/home/arti3263/logs/pasty-api-error.log',
+    out_file: '/home/arti3263/logs/pasty-api-out.log',
     log_date_format: 'YYYY-MM-DD HH:mm:ss',
     max_restarts: 10,
-    restart_delay: 5000,
+    restart_delay: 3000,
   }]
 }
 ```
@@ -140,28 +143,33 @@ pm2 start ecosystem.config.cjs
 pm2 status
 
 # Ver logs
-pm2 logs pasty-backend
+pm2 logs pasty-api
 
 # Reiniciar após alterações
-pm2 restart pasty-backend
+pm2 restart pasty-api
 
 # Parar
-pm2 stop pasty-backend
+pm2 stop pasty-api
 
 # Salvar para restart automático
 pm2 save
 pm2 startup
 ```
 
-### Redis (Opcional)
+### Redis
 
-Se disponível no ValueHost, configure o Redis para rate limiting compartilhado:
+O Redis roda no ValueHost via **socket UNIX**. Configure no `.env`:
 
 ```env
-REDIS_URL=redis://user:password@host:6379
+REDIS_URL=unix:///home/arti3263/.redis/redis.sock
 ```
 
-Sem Redis, o rate limiter usa fallback in-memory (funciona para instância única).
+Para testar:
+
+```bash
+redis-cli ping
+# → PONG
+```
 
 ### Verificação
 
@@ -207,9 +215,16 @@ Veja [GOOGLE_SETUP.md](./GOOGLE_SETUP.md) para instruções detalhadas.
 
 ---
 
-## CI/CD (GitHub Actions)
+## CI/CD (Deploy Automatizado)
 
-O repositório possui workflows em `.github/workflows/`:
+O deploy é automatizado pelo script **`deploy.ps1`** (raiz de `projetos_git`):
 
-- `deploy-backend.yml` — faz deploy automático no ValueHost ao push na branch `main`
-- `deploy-frontend.yml` — faz deploy automático na Vercel ao push na branch `main`
+```powershell
+.\deploy.ps1 -Project pasty-backend     # backend → ValueHost (PM2)
+.\deploy.ps1 -Project pasty-frontend    # frontend → Vercel (CLI)
+```
+
+- Backend: build local (`npm run build`) → scp de `dist/` + `package.json` → `npm install --omit=dev` → `pm2 restart pasty-api`
+- Frontend: `vercel --prod` a partir da raiz do monorepo (projeto `equipew/pasty-frontend`, root dir `pasty/frontend`)
+
+Os workflows GitHub Actions (`backend/.github/workflows/ci.yml`, `frontend/.github/workflows/ci.yml`) rodam apenas **CI** (lint/build/test). Não há workflow de deploy.

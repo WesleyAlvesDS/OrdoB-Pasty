@@ -4,6 +4,23 @@ Guia passo a passo para publicar o **Pasty** em produção.
 
 ---
 
+## Deploy Automatizado (recomendado)
+
+Use o script geral **`deploy.ps1`** (em `C:\Users\prowe\Documents\projetos_git\deploy.ps1`):
+
+```powershell
+# Backend (Node + PM2 no ValueHost)
+.\deploy.ps1 -Project pasty-backend
+
+# Frontend (Vercel CLI)
+.\deploy.ps1 -Project pasty-frontend
+```
+
+- Backend: build local (`tsc`) → upload `dist/` + `package.json` via scp → `npm install --omit=dev` → `pm2 restart pasty-api`
+- Frontend: `vercel --prod` a partir da raiz do monorepo (root dir `pasty/frontend`), domínio `pasty.ordob.com`
+
+---
+
 ## Visão Geral
 
 O deploy é dividido em duas partes:
@@ -15,14 +32,15 @@ O deploy é dividido em duas partes:
 
 ## Passo 1: Frontend (Vercel)
 
-### 1.1 Conectar o repositório
+> **Obs.:** hoje o deploy usa a **CLI Vercel** (projeto `equipew/pasty-frontend`, root dir `pasty/frontend`). Deploy:
+> ```bash
+> cd C:\Users\prowe\Documents\projetos_git\OrdoB Pasty
+> vercel link --yes --project pasty-frontend   # só na 1ª vez
+> vercel --prod --yes
+> ```
+> Ou simplesmente: `.\deploy.ps1 -Project pasty-frontend`
 
-1. Acesse [vercel.com](https://vercel.com) e faça login
-2. Clique em **Add New → Project**
-3. Importe o repositório GitHub: `anomalyco/ordob-pasty-frontend`
-4. Selecione o diretório `pasty/frontend`
-
-### 1.2 Configurar build
+### 1.1 Configurar build
 
 | Config | Valor |
 |--------|-------|
@@ -58,7 +76,7 @@ ssh arti3263@br64-da.valueserver.net.br -p 1157
 Os arquivos do backend ficam em:
 
 ```
-/home/arti3263/pasty-backend/
+/home/arti3263/domains/api.pasty.ordob.com/public_html/OrdoB-Pasty/pasty/backend/
 ├── src/
 ├── dist/
 ├── node_modules/
@@ -73,23 +91,23 @@ Os arquivos do backend ficam em:
 Opção A — via git clone:
 
 ```bash
-cd /home/arti3263
-git clone <repo-url> pasty-backend
-cd pasty-backend
+cd /home/arti3263/domains/api.pasty.ordob.com/public_html
+git clone <repo-url> OrdoB-Pasty
+cd OrdoB-Pasty/pasty/backend
 npm install
 npm run build
 ```
 
-Opção B — via SCP:
+Opção B — via SCP (automatizado pelo `deploy.ps1`):
 
 ```bash
 # Do seu terminal local
-scp -P 1157 -r ./backend/* arti3263@br64-da.valueserver.net.br:/home/arti3263/pasty-backend/
+.\deploy.ps1 -Project pasty-backend
 ```
 
 ### 2.4 Configurar variáveis de ambiente
 
-Edite `/home/arti3263/pasty-backend/.env`:
+Edite `/home/arti3263/domains/api.pasty.ordob.com/public_html/OrdoB-Pasty/pasty/backend/.env`:
 
 ```
 GOOGLE_CLIENT_ID=seu-client-id
@@ -97,8 +115,12 @@ GOOGLE_CLIENT_SECRET=seu-client-secret
 GOOGLE_REDIRECT_URI=https://pasty.ordob.com/auth/callback
 JWT_SECRET=sua-chave-secreta
 FRONTEND_URL=https://pasty.ordob.com
-DATABASE_URL=mysql://arti3263_pasty:senha@localhost:3306/arti3263_pasty
-REDIS_URL=redis://localhost:6379
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=arti3263_pasty
+DB_PASSWORD=senha
+DB_DATABASE=arti3263_pasty
+REDIS_URL=unix:///home/arti3263/.redis/redis.sock
 PORT=8000
 ```
 
@@ -109,12 +131,16 @@ O arquivo `ecosystem.config.cjs` deve conter:
 ```javascript
 module.exports = {
   apps: [{
-    name: "pasty-backend",
+    name: "pasty-api",
     script: "dist/index.js",
+    cwd: "/home/arti3263/domains/api.pasty.ordob.com/public_html/OrdoB-Pasty/pasty/backend",
     instances: 1,
-    exec_mode: "fork",
+    exec_mode: "cluster",
+    autorestart: true,
+    max_memory_restart: "256M",
     env: {
       NODE_ENV: "production",
+      PORT: 8000,
     }
   }]
 };
@@ -123,7 +149,7 @@ module.exports = {
 ### 2.6 Iniciar com PM2
 
 ```bash
-cd /home/arti3263/pasty-backend
+cd /home/arti3263/domains/api.pasty.ordob.com/public_html/OrdoB-Pasty/pasty/backend
 pm2 start ecosystem.config.cjs
 pm2 save
 pm2 status
@@ -132,13 +158,13 @@ pm2 status
 Para ver logs:
 
 ```bash
-pm2 logs pasty-backend
+pm2 logs pasty-api
 ```
 
 Para reiniciar após alterações:
 
 ```bash
-pm2 restart pasty-backend
+pm2 restart pasty-api
 ```
 
 ### 2.7 Proxy reverso no DirectAdmin
@@ -185,7 +211,7 @@ O DirectAdmin faz proxy reverso de `api.pasty.ordob.com` para `localhost:8000`:
 ### 4.1 Criar database
 
 1. No DirectAdmin, vá em **MySQL Management**
-2. Crie o banco: `arti3263_pasty`
+2. Crie o banco: `arti3263_pasty` (porta 3306, host `localhost` via socket)
 3. Crie um usuário e conceda permissões
 4. Anote a senha para o `.env`
 
@@ -194,7 +220,7 @@ O DirectAdmin faz proxy reverso de `api.pasty.ordob.com` para `localhost:8000`:
 As migrations rodam automaticamente na inicialização do backend. Para rodar manualmente:
 
 ```bash
-cd /home/arti3263/pasty-backend
+cd /home/arti3263/domains/api.pasty.ordob.com/public_html/OrdoB-Pasty/pasty/backend
 npm run migrate
 ```
 
@@ -202,10 +228,10 @@ npm run migrate
 
 ## Passo 5: Redis
 
-O Redis já está disponível no servidor ValueHost. Configure a conexão no `.env`:
+O Redis já está disponível no servidor ValueHost via socket UNIX:
 
 ```
-REDIS_URL=redis://localhost:6379
+REDIS_URL=unix:///home/arti3263/.redis/redis.sock
 ```
 
 Para verificar se o Redis está ativo:
@@ -235,18 +261,22 @@ redis-cli ping
 ### Atualizar backend
 
 ```bash
+# Local (automatizado)
+.\deploy.ps1 -Project pasty-backend
+
+# Ou manualmente no servidor
 ssh arti3263@br64-da.valueserver.net.br -p 1157
-cd /home/arti3263/pasty-backend
+cd /home/arti3263/domains/api.pasty.ordob.com/public_html/OrdoB-Pasty/pasty/backend
 git pull
-npm install
+npm install --omit=dev
 npm run build
-pm2 restart pasty-backend
+pm2 restart pasty-api
 ```
 
 ### Ver logs
 
 ```bash
-pm2 logs pasty-backend --lines 100
+pm2 logs pasty-api --lines 100
 ```
 
 ### Status PM2
