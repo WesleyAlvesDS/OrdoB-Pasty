@@ -30,6 +30,18 @@ vi.mock('../db.js', () => ({
   updateUserTokens: vi.fn(),
   createSession: vi.fn(async () => {}),
   invalidateSession: vi.fn(async () => {}),
+  findSession: vi.fn(async (token: string) => {
+    if (token) {
+      return {
+        token,
+        user_id: 1,
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+        created_at: new Date().toISOString(),
+        active: true,
+      }
+    }
+    return undefined
+  }),
   findClipByHash: vi.fn(async () => undefined),
   createClip: vi.fn(async (clip: Record<string, unknown>) => ({
     id: 1,

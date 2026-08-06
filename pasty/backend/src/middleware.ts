@@ -2,7 +2,7 @@ import { createMiddleware } from 'hono/factory'
 import { sign, verify } from 'hono/jwt'
 import type { Context } from 'hono'
 import { config } from './config.js'
-import { findUserById, type DbUser } from './db.js'
+import { findSession, findUserById, type DbUser } from './db.js'
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -42,6 +42,11 @@ export const authMiddleware = createMiddleware<{ Variables: Variables }>(
       // Verify audience
       if (payload.aud && payload.aud !== 'pasty-frontend') {
         return c.json({ error: 'Invalid token audience' }, 401)
+      }
+      // Verify an active server-side session exists (permite revogação no logout/refresh)
+      const session = await findSession(token)
+      if (!session) {
+        return c.json({ error: 'Invalid or expired token' }, 401)
       }
       const user = await findUserById(Number(payload.sub))
       if (!user) {

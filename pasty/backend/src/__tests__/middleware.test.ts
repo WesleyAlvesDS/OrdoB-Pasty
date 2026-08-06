@@ -23,6 +23,18 @@ vi.mock('../db.js', () => {
     findUserByGoogleId: vi.fn(),
     createUser: vi.fn(),
     updateUserTokens: vi.fn(),
+    findSession: vi.fn(async (token: string) => {
+      if (token) {
+        return {
+          token,
+          user_id: 1,
+          expires_at: new Date(Date.now() + 86400000).toISOString(),
+          created_at: new Date().toISOString(),
+          active: true,
+        }
+      }
+      return undefined
+    }),
     findClipByHash: vi.fn(),
     createClip: vi.fn(),
     getClipsByUserId: vi.fn(),

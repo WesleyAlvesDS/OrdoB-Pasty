@@ -122,13 +122,26 @@ export async function initDatabase(): Promise<void> {
     )
   `)
 
-  // ─── Indexes ─────────────────────────────────────────────
-  await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_user_hash ON clips(user_id, content_hash)')
-  await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_user_id ON clips(user_id)')
-  await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_created ON clips(user_id, created_at DESC)')
-  await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_user_dest ON clips(user_id, destination)')
-  await pool.query('CREATE INDEX IF NOT EXISTS idx_clips_user_title ON clips(user_id, title)')
-  await pool.query('CREATE INDEX IF NOT EXISTS idx_users_google ON users(google_id)')
+  // ─── Indexes (MySQL não suporta "IF NOT EXISTS"; ignora erro de índice já existente) ──
+  const indexQueries = [
+    'CREATE INDEX idx_clips_user_hash ON clips(user_id, content_hash)',
+    'CREATE INDEX idx_clips_user_id ON clips(user_id)',
+    'CREATE INDEX idx_clips_created ON clips(user_id, created_at DESC)',
+    'CREATE INDEX idx_clips_user_dest ON clips(user_id, destination)',
+    'CREATE INDEX idx_clips_user_title ON clips(user_id, title)',
+    'CREATE INDEX idx_users_google ON users(google_id)',
+  ]
+  for (const sql of indexQueries) {
+    try {
+      await pool.query(sql)
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code
+      // 1061 = duplicate key name; 1062 = duplicate entry. Demais erros são reais → relaunch.
+      if (code !== 'ER_DUP_KEYNAME' && code !== 'ER_DUP_ENTRY') {
+        throw err
+      }
+    }
+  }
 
   // OAuth states table
   await pool.query(`CREATE TABLE IF NOT EXISTS oauth_states (
