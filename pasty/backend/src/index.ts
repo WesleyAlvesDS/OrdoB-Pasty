@@ -293,8 +293,21 @@ app.post('/api/save', authMiddleware, async (c) => {
       message.includes('quota') ||
       message.includes('rate limit') ||
       message.includes('too many requests')
+    const isScopeError =
+      message.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT') ||
+      message.includes('insufficient authentication scopes')
 
-    let status: 401 | 429 | 502 = 502
+    let status: 401 | 403 | 429 | 502 = 502
+    if (isScopeError) {
+      status = 403
+      return c.json(
+        {
+          error: 'Permissão insuficiente no Google. Saia e entre novamente para reautorizar o acesso.',
+          code: 'ACCESS_TOKEN_SCOPE_INSUFFICIENT',
+        },
+        status,
+      )
+    }
     if (isTokenError) status = 401
     else if (isRateLimit) status = 429
 
