@@ -8,7 +8,7 @@
 
 ```bash
 # Certifique-se de estar no diretório correto
-cd /home/arti3263/pasty-backend
+cd /home/arti3263/domains/api.pasty.ordob.com/public_html/OrdoB-Pasty/pasty/backend
 
 # Instale as dependências
 npm install
@@ -91,11 +91,11 @@ npm run build
 **Causa:** Credenciais incorretas ou host errado.
 
 **Solução:**
-1. Verifique `DATABASE_URL` no `.env` do backend
-2. Confirme host, porta (3307), database name e senha no DirectAdmin
+1. Verifique `DB_HOST`, `DB_USER`, `DB_PASSWORD` e `DB_DATABASE` no `.env` do backend
+2. Confirme host, porta, database name e senha no DirectAdmin
 3. Teste a conexão manualmente:
    ```bash
-   mysql -u arti3263_pasty -p -h localhost -P 3307 arti3263_pasty
+   mysql -u arti3263_pasty -p -h localhost -P 3306 arti3263_pasty
    ```
 
 ---

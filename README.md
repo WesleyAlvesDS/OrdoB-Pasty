@@ -149,8 +149,11 @@ pasty/
 | GET | `/api/auth/google/login` | URL de autenticação Google |
 | POST | `/api/auth/callback` | Troca código por JWT |
 | GET | `/api/auth/me` | Dados do usuário logado |
+| GET | `/api/auth/session` | Verifica sessão ativa |
+| POST | `/api/auth/refresh` | Renova o JWT |
+| POST | `/api/auth/logout` | Encerra sessão |
 | POST | `/api/save` | Salva texto no destino |
-| POST | `/api/history` | Histórico de saves |
+| GET | `/api/history` | Histórico de saves |
 
 ## 🗺️ Roadmap
 

@@ -67,22 +67,6 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshots/home-desktop.png",
-      "sizes": "1280x800",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Tela inicial do Pasty"
-    },
-    {
-      "src": "/screenshots/home-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Tela inicial do Pasty no celular"
-    }
-  ],
   "edge_side_panel": {
     "preferred_width": 400
   },
