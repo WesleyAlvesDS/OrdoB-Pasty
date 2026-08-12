@@ -64,7 +64,16 @@ Você pode desabilitar cookies nas configurações do seu navegador, mas algumas
   },
   {
     title: '8. Alterações nesta política',
-    content: `Esta política pode ser atualizada periodicamente. Recomendamos revisá-la regularmente. A versão mais recente estará sempre disponível nesta página. Data da última atualização: 13 de julho de 2026.`,
+    content: `Esta política pode ser atualizada periodicamente. Recomendamos revisá-la regularmente. A versão mais recente estará sempre disponível nesta página. Data da última atualização: 12 de agosto de 2026.`,
+  },
+  {
+    title: '9. Publicidade de terceiros',
+    content: `Para manter o Pasty 100% gratuito, o site exibe anúncios de parceiros (Adsterra / Effective CPM Network):
+• Os anúncios podem usar cookies e armazenamento local para medir eficiência e exibir conteúdo mais relevante
+• Os provedores de anúncios podem coletar dados de navegação anônimos (ex.: páginas visitadas, tipo de dispositivo)
+• Utilizamos "links inteligentes" patrocinados que podem registrar o clique para fins de medição de campanha
+• Não compartilhamos seus textos, e-mail ou dados da conta Google com anunciantes
+• Você pode optar por não receber anúncios personalizados ajustando as preferências de publicidade do seu navegador ou Google`,
   },
 ]
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
 import { SEO, faqJsonLd, breadcrumbJsonLd } from '../components/SEO'
 import { Footer } from '../components/Footer'
+import { AdBanner } from '../components/AdBanner'
 
 const steps = [
   { icon: '🔑', title: 'Login com Google', desc: 'Use sua conta Google para entrar. Rápido e seguro — sem criar nova senha.' },
@@ -265,6 +266,8 @@ export function SaveTextOnline() {
           </Link>
         </div>
       </section>
+
+      <AdBanner />
 
       <Footer />
     </div>

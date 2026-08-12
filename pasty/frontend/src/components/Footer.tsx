@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 
+const SMART_LINK = 'https://www.effectivecpmnetwork.com/anmwu96m?key=0b67ee5348e65f5de4cefeabdb7d2c02'
+
 const navigation = {
   pages: [
     { name: 'Início', href: '/' },
@@ -163,6 +165,33 @@ export function Footer() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
           </a>
+        </div>
+
+        {/* ─── Publicidade: explicação + smart link patrocinado ── */}
+        <div className="py-6 border-t border-gray-200 dark:border-gray-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-gray-400 dark:text-gray-500">
+            <p className="max-w-xl leading-relaxed">
+              Este site exibe anúncios de parceiros para{' '}
+              <strong className="font-semibold text-gray-500 dark:text-gray-400">continuar 100% gratuito</strong>.
+              Os anúncios podem rastrear seu comportamento de navegação para oferecer conteúdo relacionado.
+              Ao utilizar o Pasty, você concorda com essa prática. Saiba mais na{' '}
+              <Link to="/privacy" className="text-[#FE5416] hover:text-[#E04A12] transition-colors font-medium">
+                Política de Privacidade
+              </Link>.
+            </p>
+            <a
+              href={SMART_LINK}
+              target="_blank"
+              rel="sponsored nofollow noopener noreferrer"
+              className="inline-flex items-center gap-2 shrink-0 text-[11px] font-medium text-gray-400 dark:text-gray-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
+              title="Link patrocinado"
+            >
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800/70 text-[10px] uppercase tracking-wide">
+                Anúncio
+              </span>
+              Clique aqui e apoie o Pasty
+            </a>
+          </div>
         </div>
 
         {/* ─── Barra inferior ──────────────────────────── */}

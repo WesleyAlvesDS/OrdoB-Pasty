@@ -10,6 +10,7 @@ import { LogoutDialog } from '../components/AuthGuard'
 import { useToastActions } from '../components/Toast'
 import { Footer } from '../components/Footer'
 import { QRCode } from '../components/QRCode'
+import { AdBanner } from '../components/AdBanner'
 import {
   TextTools,
   ALL_TOOLS,
@@ -529,6 +530,8 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
         onConfirm={confirmLogout}
         loading={loggingOut}
       />
+
+      <AdBanner />
 
       <Footer />
     </div>

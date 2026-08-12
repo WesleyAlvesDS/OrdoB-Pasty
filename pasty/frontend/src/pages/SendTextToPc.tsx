@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
 import { SEO, breadcrumbJsonLd } from '../components/SEO'
 import { Footer } from '../components/Footer'
+import { AdBanner } from '../components/AdBanner'
 
 const steps = [
   {
@@ -202,6 +203,8 @@ export function SendTextToPc() {
           </div>
         </div>
       </section>
+
+      <AdBanner />
 
       <Footer />
     </div>
