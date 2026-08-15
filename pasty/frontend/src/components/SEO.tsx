@@ -135,3 +135,19 @@ export function breadcrumbJsonLd(items: { name: string; url: string }[]) {
     })),
   }
 }
+
+export function howToJsonLd(steps: { name: string; url: string }[], name: string, description: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name,
+    description,
+    step: steps.map((step, index) => ({
+      '@type': 'HowToStep',
+      url: step.url,
+      name: step.name,
+      position: index + 1,
+      text: step.name,
+    })),
+  }
+}

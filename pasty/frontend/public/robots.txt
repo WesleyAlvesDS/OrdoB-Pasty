@@ -1,4 +1,25 @@
 User-agent: *
 Allow: /
 
+# Sitemaps
 Sitemap: https://pasty.ordob.com/sitemap.xml
+
+# Crawl delay
+Crawl-delay: 10
+
+# Block private/admin/internal paths
+Disallow: /auth/
+Disallow: /app/
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /static/admin/
+
+# Allow important public pages
+Allow: /send-text-to-pc
+Allow: /save-text-online
+Allow: /privacy
+Allow: /terms
+
+# Host for Yandex
+Host: pasty.ordob.com

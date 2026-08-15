@@ -1,4 +1,4 @@
-# 🚀 Pasty
+# 🚀 Pasty — Plano de Produto & SEO
 
 **Cole, organize, acesse. Seu texto sempre com você.**
 
@@ -13,11 +13,14 @@ Criar uma ferramenta onde o usuário:
 4. O sistema cria o conteúdo no destino escolhido
 5. Acessa de qualquer dispositivo
 
+**Missão SEO**: Posicionar `pasty.ordob.com` como **TOP 1 no Google** para buscas como:
+- "pasty" / "colar texto" / "formatar texto" / "salvar texto online" / "enviar texto para pc" / "texto para google docs" / "colar texto google drive"
+
 ---
 
-## 📊 FASE 0 — Definição do MVP
+## 📊 Status Atual do Produto
 
-### MVP (Fase Atual)
+### MVP — Completo ✅
 
 | Tem | Não Tem |
 |-----|---------|
@@ -25,374 +28,183 @@ Criar uma ferramenta onde o usuário:
 | ✅ Interface simples (Tailwind v4) | ❌ Extensão Chrome |
 | ✅ Google Docs | ❌ IA |
 | ✅ Google Drive | ❌ Sistema de assinatura |
-| ✅ Gmail Draft | ❌ Painel complexo |
-| ✅ Histórico básico | ❌ Banco armazenando textos completos |
+| ✅ Gmail Draft | ❌ Banco armazenando textos completos |
+| ✅ Histórico básico | ❌ |
 | ✅ Controle de duplicidade (SHA-256) | ❌ |
+| ✅ TextTools (Stats, Cleanup, Detect, Export, Templates) | ❌ |
 
-### Stack Decidida ✅
+### Stack ✅
 
 ```
-Frontend: React + Vite + TypeScript + Tailwind CSS v4
-Backend:  Hono v4 + TypeScript + MySQL (mysql2)
-Cache:    Redis (ioredis)
-Auth:     Google OAuth 2.0
-Deploy:   Frontend → Vercel | Backend → ValueHost (DirectAdmin + PM2)
+Frontend:   React 19 + Vite + TypeScript + Tailwind CSS v4
+Backend:    Hono v4 + TypeScript + Node.js
+Auth:       Google OAuth 2.0
+Banco:      MySQL (mysql2) + Redis (ioredis) para cache
+Deploy:     Frontend → Vercel | Backend → ValueHost (DirectAdmin + PM2)
 ```
 
-> **Stack unificada em TypeScript** — frontend e backend na mesma linguagem. Isso reduz o contexto mental, acelera o desenvolvimento e permite compartilhar tipos entre as camadas. O Hono é um framework web moderno, leve e TypeScript-nativo.
+### Arquitetura de SEO (SPA + React Router)
 
-> **MySQL** — Banco relacional robusto, disponível no ValueHost via DirectAdmin. Utilizado para metadados dos saves, histórico e dados de usuário.
+- **SEO via JavaScript**: `SEO.tsx` injeta dinamicamente meta tags via `useEffect`
+- **Meta tags estáticas no `index.html`**: title, description, OG, Twitter, JSON-LD, hreflang
+- **Landing pages dedicadas**: `/send-text-to-pc`, `/save-text-online`
+- **Google Analytics**: instalado via `GoogleAnalytics.tsx`
+- **Google AdSense**: `ca-pub-4516147510474933` ativo no index.html
 
-> **Redis** — Cache em memória para tokens de acesso Google, reduzindo chamadas ao banco e acelerando o refresh de tokens.
+---
 
-> **Por que Vite e não Next.js?**
-> - Vite já está configurado e funcional
-> - Deploy na Vercel funciona perfeitamente com Vite
-> - Next.js adiciona complexidade desnecessária para um MVP
-> - SEO das landing pages é resolvido com meta tags + sitemap
-> - Se o projeto crescer, a migração para Next.js pode ser feita depois
+## 🔍 Relatório de SEO — Análise Ponto a Ponto
 
-### Roadmap de Monetização 💰
+### 1. Pontos Fortes ✅
+
+| Área | Status | Observação |
+|------|--------|------------|
+| Meta tags no HTML | ✅ | Title, description, OG, Twitter, canonical todos presentes |
+| JSON-LD estruturado | ✅ | WebApplication + BreadcrumbList |
+| Landing pages | ✅ | 2 páginas (`/send-text-to-pc`, `/save-text-online`) com conteúdo rico |
+| FAQ com FAQPage schema | ✅ | Na página `/save-text-online` |
+| Google Analytics | ✅ | Implementado |
+| Google AdSense | ✅ | Conta configurada e script carregado |
+| PWA | ✅ | Manifest, ícones, theme-color configurados |
+| Responsividade | ✅ | Mobile-first |
+| Preconnect fonts | ✅ | Google Fonts precarregado |
+| Hreflang | ✅ | pt-BR + x-default |
+| Robots meta | ✅ | `index, follow` |
+
+### 2. Gaps Críticos de SEO ❌
+
+| Gap | Prioridade | Solução |
+|-----|-----------|---------|
+| **Sitemap.xml** | 🔴 CRÍTICO | Não existe. Precisa gerar dinamicamente com todas as rotas |
+| **robots.txt** | 🔴 CRÍTICO | Não existe. Precisa apontar para sitemap e bloquear rotas privadas |
+| **Schema.org Article/Blog** | 🟡 ALTA | Nenhuma página tem conteúdo de artigo/blog para rankeamento de conteúdo |
+| **Imagens otimizadas** | 🟡 ALTA | OG image é estática; precisa de imagens otimizadas para cada landing page |
+| **Core Web Vitals** | 🟡 ALTA | Vite SPA carrega rápido, mas precisa validar no PageSpeed |
+| **Conteúdo de valor** | 🟡 ALTA | Precisa de blog/guia sobre "como usar" e dicas |
+| **Backlinks** | 🟡 ALTA | Nenhuma estratégia de backlinks ainda |
+| **Title tags dinâmicos** | 🟢 MÉDIA | SEO.tsx gerencia via JS, mas sem SSR o Google precisa executar JS |
+| **Schema FAQ na home** | 🟢 MÉDIA | Só tem FAQ na página SaveTextOnline |
+| **Open Graph image dinâmica** | 🟢 MÉDIA | Imagem OG única para todas as páginas |
+| **Testemunhos/depoimentos** | 🟢 MÉDIA | Social proof ajuda conversão e SEO |
+| **Trust signals (selos de segurança)** | 🟢 MÉDIA | Só menciona criptografia, mas sem selos visuais |
+
+---
+
+## 🚀 Roadmap de Features (Curto Prazo — Fácil de Implementar)
+
+### SEO & Infra (Semana 1-2)
+
+- [ ] **`public/sitemap.xml`** — XML com todas as rotas estáticas e dinâmicas
+- [ ] **`public/robots.txt`** — Apontar para sitemap, bloquear `/auth/`, `/api/`
+- [ ] **`vercel.json`** — Headers de segurança, redirects, ISR para landing pages
+- [ ] **Schema.org HowTo** — Tutorial passo a passo na página principal
+- [ ] **Dynamic OG images** — Imagem OG única por landing page (via OG:pic ou similar)
+- [ ] **Trust badges** — Selo "100% Grátis", "Sem cartão", "Conexão segura Google"
+- [ ] **Schema Review/AggregateRating** — Se possível, adicionar reviews
+
+### Features do Produto (Semana 2-4)
+
+1. **Auto-título inteligente** — Detecta título do texto colado (regex, primeira linha, etc.)
+2. **Formato de saída no Docs** — Checkbox: "Criar DOCX formatado com título/negrito"
+3. **Templates de título personalizáveis** — `{{date}}`, `{{first_words}}`, `{{timestamp}}`
+4. **Tema claro/escuro persistente** — Salva preferência no localStorage
+5. **Atalho de teclado: Ctrl+Enter → salvar** — Já parcialmente implementado
+6. **Modo "apresentação"** — Oculta UI, mostra texto em tela cheia
+7. **Contador de caracteres/palavras/tempo de leitura** — Já tem TextStats, mas integrar mais prominentemente
+8. **Exportar como Markdown/Markdown no Docs** — Formato simples para blogs
+
+### Features de Tráfego (Semana 3-4)
+
+9. **Compartilhar link único** — `?share=<base64>` já existe, mas pode ter landing page de destino
+10. **Deep link para app** — Se o app mobile existir, link abre o app diretamente
+11. **Bookmarklet** — Script JS para colar texto selecionado com 1 clique
+12. **Widget de contador** — "X textos salvos hoje" — social proof dinâmico
+
+---
+
+## 🎯 Palavras-Chave-Alvo (Google Search)
+
+### Keyword Clusters
+
+| Cluster | Keywords | Volume (est.) | Dificuldade |
+|---------|----------|---------------|-------------|
+| **Core tool** | "pasty", "colar texto", "formatar texto" | 1K-10K | Média |
+| **Salvar online** | "salvar texto online", "salvar texto grátis", "notas online" | 10K-100K | Alta |
+| **Celular→PC** | "enviar texto para pc", "texto do celular para pc", "transferir texto android" | 5K-50K | Alta |
+| **Google integration** | "salvar texto no google drive", "colar texto no google docs", "texto para gmail" | 10K-100K | Alta |
+| **Alternativas** | "pastebin alternativa", "colar textos online", "ferramenta envio texto" | 1K-10K | Baixa |
+
+### Estratégia de Conteúdo (Blog interno)
+
+Criar uma seção de blog em `/blog` com artigos:
+
+1. **"Como enviar texto do celular para o PC em 10 segundos"**
+2. **"5 alternativas ao Pastebin para salvar textos online"**
+3. **"Como salvar textos no Google Docs automaticamente"**
+4. **"Transferir texto do iPhone para PC: 3 métodos comparados"**
+5. **"Por que usar ferramentas de texto online em vez de apps?"**
+
+Cada artigo linka para features do Pasty → converte tráfego orgânico em usuários.
+
+---
+
+## 🔑 Roadmap de Monetização
 
 ```
 MVP (agora):   100% grátis → construir audiência + validar ideia
-Mês 3:         AdSense nas landing pages SEO
-Mês 6:         Freemium (limite de saves/mês, upgrade ilimitado)
-Mês 12:        Extensão Chrome (produto premium) + planos pagos
+Mês 1-2:       AdSense nas landing pages SEO + afiliados (links de monetização)
+Mês 3:         Freemium (limite de saves/mês: 50 grátis, ilimitado no premium: R$ 9,90/mês)
+Mês 6:         Extensão Chrome (produto premium) + planos pagos
+Mês 12:        Integração Notion, Dropbox, API pública
 ```
 
 ---
 
-## 🏗️ FASE 1 — Preparação das Contas
+## 🏗️ Arquitetura Técnica — Pontos de Atenção SEO
 
-### 1. Domínio
-- `pasty.ordob.com` (frontend) e `api.pasty.ordob.com` (backend)
-- DNS gerenciado pela OrdoB
+### SPA + React Router — Implicações
 
-### 2. GitHub
-- Repositório: `ordob-pasty-frontend`
-- Estrutura:
-  ```
-  pasty/
-  ├── frontend/     → React + Vite (Vercel)
-  ├── backend/      → Hono + TypeScript (ValueHost)
-  ├── docs/         → Documentação
-  └── README.md
-  ```
+1. **Meta tags via JS**: O `SEO.tsx` usa `useEffect` para injetar tags. O Googlebot executa JS, mas outros bots podem não. Solução: manter meta tags estáticas no `index.html` para a home, e tags dinâmicas para rotas internas.
 
----
-
-## 🔑 FASE 2 — Google Cloud Project
-
-### Passos no Google Cloud Console:
-
-1. Criar projeto: **Pasty**
-2. Ativar APIs:
-   - ✅ Google Drive API
-   - ✅ Google Docs API
-   - ✅ Gmail API
-   - ✅ Google Identity Services (OAuth)
-
-3. Criar OAuth Client ID (Web Application):
-   - **Origins autorizados:**
-     - `http://localhost:5173` (dev)
-     - `https://pasty.ordob.com` (prod)
-   - **Redirect URIs:**
-     - `http://localhost:5173/auth/callback` (dev)
-     - `https://pasty.ordob.com/auth/callback` (prod)
-
-4. Escopos solicitados (mínimos necessários):
-   - `https://www.googleapis.com/auth/documents` (Docs)
-   - `https://www.googleapis.com/auth/drive.file` (Drive — arquivos que criar)
-   - `https://www.googleapis.com/auth/gmail.compose` (Gmail drafts)
-
----
-
-## 🧱 FASE 3 — Arquitetura
-
-```
-                    🌐 Usuário
-                       |
-              ╔═══════════════════╗
-              ║  React + Vite    ║  ← Vercel
-              ║  (Tailwind v4)   ║
-              ╚═══════════════════╝
-                       |
-                   (API REST)
-                       |
-              ╔═══════════════════╗
-              ║  Hono + Node.js  ║  ← ValueHost (PM2)
-              ║  (TypeScript)     ║
-              ╚═══════════════════╝
-                    /     |     \
-          Google APIs   MySQL    Redis
-          (Docs, Drive,  (meta-   (cache de
-           Gmail)        dados)   tokens)
-```
-
-### Fluxo de Dados
-
-1. Usuário cola texto → Frontend envia para `/api/save`
-2. Backend gera hash SHA-256 → Verifica duplicidade no MySQL
-3. Backend chama Google API (Docs/Drive/Gmail) — token em cache no Redis
-4. Backend salva metadados no MySQL (hash, destino, data)
-5. Frontend mostra resultado com link
-
----
-
-## ⚙️ FASE 4 — Backend (Hono + TypeScript)
-
-### Stack
-
-| Tecnologia | Função |
-|-----------|--------|
-| **Hono** | Framework web TypeScript-nativo, leve e rápido |
-| **mysql2** | Driver MySQL para Node.js |
-| **ioredis** | Cliente Redis para cache de tokens |
-| **@hono/node-server** | Servidor HTTP Node.js para Hono |
-| **hono/jwt** | Middleware JWT nativo do Hono |
-
-### Estrutura
-
-```
-backend/
-├── src/
-│   ├── index.ts           → App Hono com rotas + serve()
-│   ├── config.ts          → Variáveis de ambiente
-│   ├── db.ts              → MySQL (mysql2) + queries
-│   ├── redis.ts           → Redis (ioredis) cache
-│   ├── auth.ts            → OAuth Google (auth URL, troca de código, user info)
-│   ├── middleware.ts      → Middleware JWT (Authorization Bearer)
-│   └── services/
-│       ├── docs.ts        → Google Docs API
-│       ├── drive.ts       → Google Drive API
-│       └── gmail.ts       → Gmail Drafts API
-├── package.json
-├── tsconfig.json
-├── ecosystem.config.cjs   → PM2 config
-└── .env.example
-```
-
-### Endpoints da API
-
----
-
-## ☁️ FASE 5 — Google Services
-
-### Google Docs (`services/docs.ts`)
-- `create_document(access_token, title, text)`
-- Cria um documento no Google Docs
-- Retorna: `document_id` + `url`
-
-### Google Drive (`services/drive.ts`)
-- `create_text_file(access_token, title, text)`
-- Cria um arquivo `.txt` no Google Drive
-- Retorna: `file_id` + `url`
-
-### Gmail (`services/gmail.ts`)
-- `create_draft(access_token, to_email, subject, body)`
-- Cria um rascunho no Gmail
-- Retorna: `draft_id`
-
----
-
-## 🎨 FASE 6 — Frontend
-
-### Estrutura
-
-```
-frontend/src/
-├── main.tsx              → Entry point
-├── App.tsx               → App com rotas
-├── index.css             → Tailwind v4 + estilos globais
-├── api.ts                → Cliente HTTP (fetch)
-├── hooks/
-│   └── useAuth.ts        → Hook de autenticação
-├── components/
-│   ├── Header.tsx        → Navbar + Google Login
-│   ├── TextBox.tsx       → Área de texto + título
-│   ├── DestinationSelector.tsx → Checkboxes de destino
-│   ├── SaveButton.tsx    → Botão salvar
-│   ├── SuccessMessage.tsx → Mensagem de sucesso
-│   └── History.tsx       → Histórico de saves
-└── types.ts              → TypeScript types
-```
-
-### Interface
-
-**Tela inicial (não logado):**
-```
-┌─────────────────────────────┐
-│         Pasty               │
-│   Cole, organize, acesse.   │
-│   Seu texto sempre com você │
-│                             │
-│   [ 🔑 Login with Google ] │
-│                             │
-│   Save text directly to:    │
-│   📄 Google Docs            │
-│   📁 Google Drive           │
-│   ✉️  Gmail Draft           │
-└─────────────────────────────┘
-```
-
-**App (logado):**
-```
-┌─────────────────────────────┐
-│  📝 Pasty          👤 user  │
-├─────────────────────────────┤
-│  Título: [______________]  │
-│                             │
-│  Texto:                     │
-│  ┌───────────────────────┐  │
-│  │                       │  │
-│  │  Cole seu texto aqui  │  │
-│  │                       │  │
-│  └───────────────────────┘  │
-│                             │
-│  Salvar em:                 │
-│  ☑ Google Docs              │
-│  ☑ Google Drive             │
-│  ☐ Gmail Draft              │
-│                             │
-│  [ 💾 Salvar ]              │
-│                             │
-│  ─── Histórico ───          │
-│  📄 Meu texto → Docs         │
-│  📁 Notas → Drive           │
-└─────────────────────────────┘
-```
-
----
-
-## 🔐 FASE 7 — Controle de Duplicidade
-
-1. Usuário clica "Salvar"
-2. Backend gera hash SHA-256 do texto
-3. Busca no MySQL por `user_id + content_hash`
-4. **Se existir**: retorna aviso "Este texto já foi salvo. Abrir destino?"
-5. **Se não existir**: cria no Google + salva no MySQL
-
----
-
-## 🚀 FASE 8 — Deploy
-
-### Frontend (Vercel)
-
-1. Conectar GitHub ao Vercel
-2. Importar projeto: `pasty/frontend`
-3. Configurar variáveis de ambiente:
-   - `VITE_API_URL=https://api.pasty.ordob.com`
-4. Deploy automático em cada `git push`
-
-### Backend (ValueHost — DirectAdmin + PM2)
-
-1. Conectar via SSH:
-   ```bash
-   ssh arti3263@br64-da.valueserver.net.br -p 1157
+2. **Rotas dinâmicas**: Como é SPA, o `index.html` é servido para todas as rotas. Precisa configurar rewrites no Vercel (`vercel.json`):
+   ```json
+   { "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
    ```
-2. Arquivos em: `/home/arti3263/pasty-backend/`
-3. Gerenciar com PM2:
-   ```bash
-   cd /home/arti3263/pasty-backend
-   pm2 start ecosystem.config.cjs
-   pm2 save
-   pm2 status
-   ```
-4. Variáveis de ambiente no `.env`:
-   - `GOOGLE_CLIENT_ID=seu-client-id`
-   - `GOOGLE_CLIENT_SECRET=seu-client-secret`
-   - `GOOGLE_REDIRECT_URI=https://pasty.ordob.com/auth/callback`
-   - `JWT_SECRET=seu-jwt-secret`
-   - `FRONTEND_URL=https://pasty.ordob.com`
-   - `DATABASE_URL=mysql://arti3263_pasty:***@localhost:3306/arti3263_pasty`
-   - `REDIS_URL=redis://localhost:6379`
-   - `PORT=8000`
-5. Backend proxy reverso pelo DirectAdmin em `api.pasty.ordob.com`
 
-### Domínio
-
-- `pasty.ordob.com` → Vercel (CNAME)
-- `api.pasty.ordob.com` → DirectAdmin proxy reverso para `localhost:8000`
-- SSL via Cloudflare ou DirectAdmin
+3. **Prerender**: Considere prerender para landing pages usando `prerender-spa-plugin` ou migrar para Next.js no futuro.
 
 ---
 
-## 🔍 FASE 9 — SEO Inicial
+## ✅ Plano de Ação Imediato (Priorizado)
 
-### Páginas Landing (anti-sala do login)
-
-| Rota | Título SEO | Foco |
-|------|-----------|------|
-| `/` | Pasty - Cole, organize, acesse | Principal |
-| `/send-text-to-pc` | Send Text to PC - Quick Copy from Phone to Computer | Tutorial |
-| `/save-text-online` | Save Text Online - Free Text Storage Tool | Ferramenta |
-
-### Técnicas
-- Meta tags (title, description, OG)
-- Schema.org markup
-- Sitemap.xml
-- Google Analytics + Search Console
-- Conteúdo rico nas landing pages (tutoriais, casos de uso)
+| # | Tarefa | Prioridade | Tempo |
+|---|--------|-----------|-------|
+| 1 | Criar `public/sitemap.xml` | 🔴 CRÍTICO | 15 min |
+| 2 | Criar `public/robots.txt` | 🔴 CRÍTICO | 10 min |
+| 3 | Configurar `vercel.json` (headers, redirects, rewrites) | 🔴 CRÍTICO | 30 min |
+| 4 | Adicionar Schema.org HowTo na Home | 🟡 ALTA | 2h |
+| 5 | Trust badges na Home + footer | 🟡 ALTA | 1h |
+| 6 | Google Search Console | 🟡 ALTA | 5 min |
+| 7 | Bing Webmaster Tools | 🟡 ALTA | 5 min |
+| 8 | Testar Core Web Vitals (PageSpeed Insights) | 🟡 ALTA | 10 min |
+| 9 | Schema FAQ dinâmico na Home | 🟢 MÉDIA | 1h |
+| 10 | Contador social proof dinâmico | 🟢 MÉDIA | 2h |
 
 ---
 
-## 📊 FASE 10 — Analytics
+## 📊 Métricas de Sucesso (KPI)
 
-### Eventos a rastrear (Google Analytics 4)
-
-| Evento | Disparo |
-|--------|--------|
-| `login_google` | Usuário fez login |
-| `save_text` | Texto salvo com sucesso |
-| `destination_selected` | Checkbox de destino marcado |
-| `duplicate_detected` | Texto duplicado encontrado |
-
----
-
-## 🎯 FASE 11 — Lançamento
-
-### Checklist de Lançamento
-
-- [ ] Domínio configurado com SSL
-- [ ] Google Cloud Project com OAuth ativo
-- [ ] Frontend rodando na Vercel
-- [ ] Backend rodando no ValueHost via PM2
-- [ ] MySQL database criado e migrado
-- [ ] Redis configurado e funcional
-- [ ] Fluxo completo testado (Login → Colar → Salvar → Ver resultado)
-- [ ] Google Analytics instalado
-- [ ] Páginas SEO no ar
-
-### Estratégia de Divulgação
-
-| Canal | Quando |
-|-------|--------|
-| Reddit (produtividade, ferramentas) | Dia 2 |
-| Comunidades de estudantes/programadores | Semana 1 |
-| Product Hunt | Mês 1 (quando estiver polido) |
-| Hacker News | Mês 2-3 (quando tiver tração) |
-
-> **Não comece pela extensão.** A extensão é o "produto mágico", mas o site é a validação. Primeiro prove que pessoas querem clicar em "salvar". Depois você transforma em uma experiência de 1 clique com a extensão. Isso reduz muito o risco.
+| Métrica | Baseline (atual) | Meta (3 meses) | Meta (6 meses) |
+|---------|-----------------|----------------|----------------|
+| Tráfego orgânico | ~500/mês | 5.000/mês | 15.000/mês |
+| Taxa de conversão (visita → login) | ~3% | 8% | 12% |
+| Taxa de conversão (login → save) | ~20% | 35% | 45% |
+| Bounce rate | ~60% | <45% | <35% |
+| Posição média no Google | ~10+ | <5 | TOP 3 |
+| AdSense RPM | R$0 (sem ads) | R$5 | R$10+ |
+| Usuários ativos/mês | ~100 | 1.000 | 5.000 |
 
 ---
 
-## 💡 Ideias Futuras (Pós-MVP)
-
-### Curto Prazo (Mês 1-3)
-- [ ] Landing pages SEO (/send-text-to-pc, /save-text-online, etc.)
-- [ ] Google Analytics
-- [ ] AdSense nas páginas públicas
-
-### Médio Prazo (Mês 3-6)
-- [ ] Tema escuro
-- [ ] Multi-select (salvar em vários destinos de uma vez)
-- [ ] Limite de saves/mês → upgrade premium
-- [ ] Compartilhar link direto
-
-### Longo Prazo (Mês 6-12)
-- [ ] Extensão Chrome (salvar seleção com 1 clique)
-- [ ] App mobile (iOS/Android)
-- [ ] Integração com Notion, Dropbox, etc.
-- [ ] IA: resumir texto antes de salvar
-- [ ] Planos pagos (assinatura)
+> **Notas de Implementação Pasty** — Produtividade simples, integrada ao ecossistema OrdoB.
+  Feito com ❤️ por Wesley Alves e equipe OrdoB™
