@@ -15,6 +15,7 @@ const navLinks = [
   { name: 'Início', href: '/' },
   { name: 'Enviar para o PC', href: '/send-text-to-pc' },
   { name: 'Salvar texto', href: '/save-text-online' },
+  { name: 'Guia', href: '/guia' },
 ]
 
 export function Header({ user, onLogout, onLogin, authLoading }: HeaderProps) {

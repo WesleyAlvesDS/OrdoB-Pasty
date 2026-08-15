@@ -151,3 +151,16 @@ export function howToJsonLd(steps: { name: string; url: string }[], name: string
     })),
   }
 }
+
+export function siteNavigationJsonLd(navLinks: { name: string; url: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SiteNavigationElement',
+    name: 'Navegação principal do Pasty',
+    hasPart: navLinks.map((link) => ({
+      '@type': 'SiteNavigationElement',
+      name: link.name,
+      url: link.url,
+    })),
+  }
+}

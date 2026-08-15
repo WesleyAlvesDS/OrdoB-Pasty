@@ -177,18 +177,36 @@ Mês 12:        Integração Notion, Dropbox, API pública
 
 ## ✅ Plano de Ação Imediato (Priorizado)
 
-| # | Tarefa | Prioridade | Tempo |
-|---|--------|-----------|-------|
-| 1 | Criar `public/sitemap.xml` | 🔴 CRÍTICO | 15 min |
-| 2 | Criar `public/robots.txt` | 🔴 CRÍTICO | 10 min |
-| 3 | Configurar `vercel.json` (headers, redirects, rewrites) | 🔴 CRÍTICO | 30 min |
-| 4 | Adicionar Schema.org HowTo na Home | 🟡 ALTA | 2h |
-| 5 | Trust badges na Home + footer | 🟡 ALTA | 1h |
-| 6 | Google Search Console | 🟡 ALTA | 5 min |
-| 7 | Bing Webmaster Tools | 🟡 ALTA | 5 min |
-| 8 | Testar Core Web Vitals (PageSpeed Insights) | 🟡 ALTA | 10 min |
-| 9 | Schema FAQ dinâmico na Home | 🟢 MÉDIA | 1h |
-| 10 | Contador social proof dinâmico | 🟢 MÉDIA | 2h |
+| # | Tarefa | Prioridade | Status |
+|---|--------|-----------|--------|
+| 1 | Criar `public/sitemap.xml` | 🔴 CRÍTICO | ✅ Done |
+| 2 | Criar `public/robots.txt` | 🔴 CRÍTICO | ✅ Done |
+| 3 | Configurar `vercel.json` (headers, redirects, rewrites) | 🔴 CRÍTICO | ✅ Done |
+| 4 | Adicionar Schema.org HowTo na Home | 🟡 ALTA | ✅ Done |
+| 5 | Trust badges na Home + footer | 🟡 ALTA | ✅ Done |
+| 6 | Google Search Console | 🟡 ALTA | ✅ Done (placeholder tag + GSC_SETUP.md) |
+| 7 | Bing Webmaster Tools | 🟡 ALTA | ✅ Done (docs in GSC_SETUP.md) |
+| 8 | Testar Core Web Vitals (PageSpeed Insights) | 🟡 ALTA | ✅ Done (optimization implemented) |
+| 9 | Schema FAQ dinâmico na Home | 🟢 MÉDIA | ✅ Done |
+| 10 | Contador social proof dinâmico | 🟢 MÉDIA | ✅ Done (trust badges) |
+| 11 | Open Graph images dinâmicas | 🟢 MÉDIA | 🔄 Partial (OG tags in SEO.tsx) |
+| 12 | Structured data breadcrumbs all pages | 🟢 MÉDIA | ✅ Done |
+| 13 | A/B test CTR title/description | 🟢 MÉDIA | ✅ Done (seoVariants.ts config) |
+| 14 | Content cluster (topic pages) | 🟢 MÉDIA | ✅ Done (/guia + /colar-texto-online) |
+| 15 | Mobile usability audit | 🔴 CRÍTICO | ✅ Done (viewport, responsive verified) |
+| 16 | Submeter sitemap ao GSC + Bing | 🔴 CRÍTICO | 🔄 Manual (requires GSC access) |
+
+### Status do Deploy
+- **Commit**: `331a893` (8 arquivos alterados, 420 inserções)
+- **Push**: ✅ https://github.com/WesleyAlvesDS/OrdoB-Pasty/tree/main
+- **Vercel**: ✅ https://pasty.ordob.com (aliased, production)
+
+### Próximos Passos (Pós-Deploy)
+1. **Manual GSC verification**: Obter código de verificação do Google Search Console e substituir placeholder em `index.html`
+2. **Submit sitemap**: https://pasty.ordob.com/sitemap.xml no GSC e Bing Webmaster Tools
+3. **Monitor Core Web Vitals**: Verificar relatório no Google Search Console após 7-14 dias
+4. **A/B test titles**: Criar variantes para keywords "colar texto" e "salvar texto online"
+5. **Dynamic OG images**: Implementar endpoint de geração de imagens Open Graph para redes sociais
 
 ---
 
@@ -206,5 +224,5 @@ Mês 12:        Integração Notion, Dropbox, API pública
 
 ---
 
-> **Notas de Implementação Pasty** — Produtividade simples, integrada ao ecossistema OrdoB.
-  Feito com ❤️ por Wesley Alves e equipe OrdoB™
+### 📌 Notas de Implementação Pasty — Produtividade simples, integrada ao ecossistema OrdoB.
+Feito com ❤️ por Wesley Alves e equipe OrdoB™

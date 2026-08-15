@@ -30,6 +30,9 @@ const TermsOfService = lazy(() =>
 const Guia = lazy(() =>
   import('./pages/Guia').then((m) => ({ default: m.Guia })),
 )
+const ColarTextoOnline = lazy(() =>
+  import('./pages/ColarTextoOnline').then((m) => ({ default: m.ColarTextoOnline })),
+)
 
 // ─── Loading fallback ───────────────────────────────────────
 
@@ -165,6 +168,14 @@ function App() {
             element={
               <Suspense fallback={<PageLoading />}>
                 <Guia />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/colar-texto-online"
+            element={
+              <Suspense fallback={<PageLoading />}>
+                <ColarTextoOnline />
               </Suspense>
             }
           />

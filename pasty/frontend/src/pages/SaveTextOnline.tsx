@@ -81,8 +81,8 @@ export function SaveTextOnline() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <SEO
-        title="Salve texto online grátis"
-        description="Precisa salvar um texto rapidamente e acessar de qualquer lugar? O Pasty deixa você colar, salvar e acessar seus textos no Google Drive, Docs ou Gmail em segundos. Grátis."
+        title="Salvar texto online grátis | Cole e acesse de qualquer lugar"
+        description="Salve texto online em segundos e acesse de qualquer dispositivo. Cole no Pasty, escolha Google Docs, Drive ou Gmail e pronto. 100% grátis."
         canonical="https://pasty.ordob.com/save-text-online"
         ogType="website"
         jsonLd={{ ...faqJsonLd(faqs), ...pageJsonLd }}

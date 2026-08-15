@@ -52,8 +52,8 @@ export function SendTextToPc() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <SEO
-        title="Envie texto do celular para o PC"
-        description="Cansado de se enviar e-mails ou WhatsApp para transferir texto do celular para o PC? Com o Pasty, cole e salve diretamente no Google Docs, Drive ou Gmail."
+        title="Como enviar texto do celular para o PC grátis"
+        description="Envie texto do celular para o PC em 1 minuto, sem e-mail nem WhatsApp. Cole no Pasty e salve direto no Google Docs, Drive ou Gmail. Grátis."
         canonical="https://pasty.ordob.com/send-text-to-pc"
         ogType="website"
          jsonLd={{ ...pageJsonLd, ...faqJsonLd(faqs) }}

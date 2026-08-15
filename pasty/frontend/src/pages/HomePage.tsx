@@ -5,6 +5,7 @@ import { getGoogleAuthUrl, saveText, getStoredToken } from '../api'
 import { useSaveForm } from '../hooks/useSaveForm'
 import { Header } from '../components/Header'
 import { SEO, faqJsonLd, howToJsonLd, orgJsonLd } from '../components/SEO'
+import { getSeoVariant } from '../config/seoVariants'
 import { HistorySkeleton } from '../components/Skeleton'
 import { LogoutDialog } from '../components/AuthGuard'
 import { useToastActions } from '../components/Toast'
@@ -236,8 +237,8 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <SEO
-        title="Pasty — Cole, salve e acesse de qualquer lugar"
-        description="Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail. Rápido, seguro e 100% grátis."
+        title={getSeoVariant().title}
+        description={getSeoVariant().description}
         canonical="https://pasty.ordob.com/"
         jsonLd={{
           ...orgJsonLd,
@@ -356,6 +357,10 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
                 <span className="text-gray-300 dark:text-gray-600">·</span>
                 <Link to="/save-text-online" className="text-violet-600 dark:text-violet-400 hover:underline text-xs font-medium">
                   Como salvar texto online grátis
+                </Link>
+                <span className="text-gray-300 dark:text-gray-600">·</span>
+                <Link to="/colar-texto-online" className="text-violet-600 dark:text-violet-400 hover:underline text-xs font-medium">
+                  Colar texto online
                 </Link>
               </div>
             </div>

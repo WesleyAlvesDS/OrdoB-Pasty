@@ -84,6 +84,22 @@
     <link rel="alternate" href="https://pasty.ordob.com/" hreflang="pt-BR" />
     <link rel="alternate" href="https://pasty.ordob.com/" hreflang="x-default" />
 
+    <!-- ─── Site Navigation Structured Data ──────────────────── -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SiteNavigationElement",
+        "name": "Navegação principal do Pasty",
+        "hasPart": [
+          { "@type": "SiteNavigationElement", "name": "Início", "url": "https://pasty.ordob.com/" },
+          { "@type": "SiteNavigationElement", "name": "Enviar texto para o PC", "url": "https://pasty.ordob.com/send-text-to-pc" },
+          { "@type": "SiteNavigationElement", "name": "Salvar texto online", "url": "https://pasty.ordob.com/save-text-online" },
+          { "@type": "SiteNavigationElement", "name": "Colar texto online", "url": "https://pasty.ordob.com/colar-texto-online" },
+          { "@type": "SiteNavigationElement", "name": "Guia de uso", "url": "https://pasty.ordob.com/guia" }
+        ]
+      }
+    </script>
+
     <!-- ─── PWA / Manifest ────────────────────────────── -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#7c3aed" />
@@ -94,6 +110,27 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="mask-icon" href="/mask-icon.svg" color="#7c3aed" />
+
+    <!-- ─── Organization Schema ───────────────────────── -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Pasty",
+        "url": "https://pasty.ordob.com/",
+        "logo": "https://pasty.ordob.com/favicon.svg",
+        "sameAs": [
+          "https://ordob.com",
+          "https://github.com/WesleyAlvesDS/OrdoB-Pasty"
+        ],
+        "contactPoint": [{
+          "@type": "ContactPoint",
+          "email": "mailto:contato@ordob.com",
+          "contactType": "customer service",
+          "availableLanguage": ["pt-BR"]
+        }]
+      }
+    </script>
 
     <!-- ─── Google AdSense ─────────────────────────────── -->
     <meta name="google-adsense-account" content="ca-pub-4516147510474933" />
