@@ -29,6 +29,13 @@
   </url>
 
   <url>
+    <loc>https://pasty.ordob.com/guia</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
     <loc>https://pasty.ordob.com/privacy</loc>
     <lastmod>2026-08-15</lastmod>
     <changefreq>yearly</changefreq>

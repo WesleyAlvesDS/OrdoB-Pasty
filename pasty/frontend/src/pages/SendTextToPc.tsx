@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Header } from '../components/Header'
-import { SEO, breadcrumbJsonLd } from '../components/SEO'
+import { SEO, faqJsonLd, breadcrumbJsonLd } from '../components/SEO'
 import { Footer } from '../components/Footer'
 import { AdBanner } from '../components/AdBanner'
 
@@ -33,6 +33,12 @@ const benefits = [
   { icon: '📁', title: 'Múltiplos destinos', desc: 'Google Docs, Drive e Gmail. Escolha onde quer salvar.' },
 ]
 
+const faqs = [
+  { q: 'Preciso instalar algum aplicativo no celular?', a: 'Não. Funciona em qualquer navegador moderno — celular, tablet ou PC. Apenas abra o site.' },
+  { q: 'O texto fica salvo no meu PC?', a: 'Sim! O texto é salvo no seu Google Docs, Drive ou Gmail. Acesse de qualquer dispositivo.' },
+  { q: 'Preciso de conta Google?', a: 'Sim, usamos OAuth 2.0 do Google. É rápido, seguro e você controla as permissões.' },
+]
+
 const pageJsonLd = breadcrumbJsonLd([
   { name: 'Início', url: 'https://pasty.ordob.com/' },
   { name: 'Enviar texto para o PC', url: 'https://pasty.ordob.com/send-text-to-pc' },
@@ -50,7 +56,7 @@ export function SendTextToPc() {
         description="Cansado de se enviar e-mails ou WhatsApp para transferir texto do celular para o PC? Com o Pasty, cole e salve diretamente no Google Docs, Drive ou Gmail."
         canonical="https://pasty.ordob.com/send-text-to-pc"
         ogType="website"
-        jsonLd={pageJsonLd}
+         jsonLd={{ ...pageJsonLd, ...faqJsonLd(faqs) }}
       />
 
       <Header user={null} />

@@ -27,6 +27,9 @@ const PrivacyPolicy = lazy(() =>
 const TermsOfService = lazy(() =>
   import('./pages/TermsOfService').then((m) => ({ default: m.TermsOfService })),
 )
+const Guia = lazy(() =>
+  import('./pages/Guia').then((m) => ({ default: m.Guia })),
+)
 
 // ─── Loading fallback ───────────────────────────────────────
 
@@ -154,6 +157,14 @@ function App() {
             element={
               <Suspense fallback={<PageLoading />}>
                 <TermsOfService />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/guia"
+            element={
+              <Suspense fallback={<PageLoading />}>
+                <Guia />
               </Suspense>
             }
           />

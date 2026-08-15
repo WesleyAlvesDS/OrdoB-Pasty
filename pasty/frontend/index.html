@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
 
     <!-- ─── Primary Meta Tags ─────────────────────────── -->
     <title>Pasty — Cole e salve textos no Google Docs, Drive ou Gmail</title>
@@ -13,7 +13,7 @@
     <meta name="robots" content="index, follow" />
     <meta name="language" content="pt-BR" />
     <meta name="author" content="Pasty" />
-    <meta name="keywords" content="salvar texto online, colar texto, Google Docs, Google Drive, Gmail, notas online, texto para pc, transferir texto, pasty" />
+    <meta name="keywords" content="pasty, colar texto, formatar texto, salvar texto online, salvar texto grátis, enviar texto para pc, texto do celular para pc, transferir texto, texto para google docs, texto para google drive, texto para gmail, notas online, pastebin alternativa, ferramenta envio texto, colar textos online, ferramenta gratuita, OrdoB Pasty, google docs, google drive, gmail draft" />
     <link rel="canonical" href="https://pasty.ordob.com/" />
 
     <!-- ─── Open Graph / Social ───────────────────────── -->
@@ -40,10 +40,45 @@
     <meta name="twitter:image" content="https://pasty.ordob.com/og-image.png" />
 
     <!-- ─── Google Search Console Verification ────────────────── -->
-    <meta name="google-site-verification" content="pasty-search-console-verification" />
+    <!-- Replace with actual code from Google Search Console: https://search.google.com/search-console/welcome -->
+    <meta name="google-site-verification" content="" />
 
     <!-- ─── Bing Webmaster Tools Verification ─────────────────── -->
     <meta name="msvalidate.01" content="BING-VERIFICATION-CODE" />
+
+    <!-- FAQ Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "O Pasty é grátis?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sim! O Pasty é 100% grátis. Você só precisa de uma conta Google — sem cartão de crédito, sem trial."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Preciso instalar algum aplicativo?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Não. Funciona em qualquer navegador moderno — celular, tablet ou computador. Apenas abra o site e use."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Onde meus textos ficam salvos?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No Google Docs, Google Drive ou Gmail — você escolhe. Nós não armazenamos o conteúdo dos seus textos no Pasty."
+            }
+          }
+        ]
+      }
+    </script>
 
     <!-- ─── Hreflang ──────────────────────────────────── -->
     <link rel="alternate" href="https://pasty.ordob.com/" hreflang="pt-BR" />
@@ -66,12 +101,19 @@
       async
       src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4516147510474933"
       crossorigin="anonymous"
+      fetchpriority="low"
     ></script>
 
     <!-- ─── Preconnect & Preload ──────────────────────── -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com" />
+    <link rel="dns-prefetch" href="https://pasty.ordob.com" />
+
+    <!-- Preload critical CSS (Inter font) -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null; this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" /></noscript>
 
     <!-- ─── Fonts ─────────────────────────────────────── -->
     <link

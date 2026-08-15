@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState, lazy, Suspense } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { User, Clip, Destination } from '../types'
 import { getGoogleAuthUrl, saveText, getStoredToken } from '../api'
 import { useSaveForm } from '../hooks/useSaveForm'
@@ -9,7 +9,6 @@ import { HistorySkeleton } from '../components/Skeleton'
 import { LogoutDialog } from '../components/AuthGuard'
 import { useToastActions } from '../components/Toast'
 import { Footer } from '../components/Footer'
-import { QRCode } from '../components/QRCode'
 import { AdBanner } from '../components/AdBanner'
 import {
   TextTools,
@@ -38,6 +37,9 @@ const SuccessMessage = lazy(() =>
 )
 const History = lazy(() =>
   import('../components/History').then((m) => ({ default: m.History })),
+)
+const QRCode = lazy(() =>
+  import('../components/QRCode').then((m) => ({ default: m.QRCode })),
 )
 
 // ─── Pending save ───────────────────────────────────────────
@@ -341,6 +343,20 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
                 <span className="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true" />
                 Não armazenamos seu conteúdo
+              </div>
+            </div>
+
+            {/* ─── Related Guides (SEO) ─────────────────────── */}
+            <div className="mt-8 text-center">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">Guias úteis:</p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Link to="/send-text-to-pc" className="text-violet-600 dark:text-violet-400 hover:underline text-xs font-medium">
+                  Como enviar texto do celular para o PC
+                </Link>
+                <span className="text-gray-300 dark:text-gray-600">·</span>
+                <Link to="/save-text-online" className="text-violet-600 dark:text-violet-400 hover:underline text-xs font-medium">
+                  Como salvar texto online grátis
+                </Link>
               </div>
             </div>
 
