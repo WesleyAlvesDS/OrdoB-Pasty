@@ -43,6 +43,13 @@
   </url>
 
   <url>
+    <loc>https://pasty.ordob.com/bookmarklet</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
     <loc>https://pasty.ordob.com/privacy</loc>
     <lastmod>2026-08-15</lastmod>
     <changefreq>yearly</changefreq>

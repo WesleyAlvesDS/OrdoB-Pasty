@@ -84,6 +84,23 @@ app.use('/api/*', ordobMiddleware)
 
 app.get('/api/health', (c) => c.json({ status: 'ok', version: '1.0.0' }))
 
+// ─── Stats (público — social proof) ──────────────────────────
+
+app.get('/api/stats', async (c) => {
+  try {
+    const { countAllClips } = await import('./db.js')
+    const totalSaves = await countAllClips()
+    return c.json({
+      totalSaves,
+      totalUsers: null,
+      generatedAt: new Date().toISOString(),
+    })
+  } catch (err) {
+    console.error('Stats fetch failed:', err)
+    return c.json({ totalSaves: 0, totalUsers: null }, 500)
+  }
+})
+
 // ─── Auth Routes ───────────────────────────────────────────────
 
 app.get('/api/auth/google/login', async (c) => {

@@ -11,6 +11,7 @@ import { LogoutDialog } from '../components/AuthGuard'
 import { useToastActions } from '../components/Toast'
 import { Footer } from '../components/Footer'
 import { AdBanner } from '../components/AdBanner'
+import { SaveCounter } from '../components/SaveCounter'
 import {
   TextTools,
   ALL_TOOLS,
@@ -41,6 +42,15 @@ const History = lazy(() =>
 )
 const QRCode = lazy(() =>
   import('../components/QRCode').then((m) => ({ default: m.QRCode })),
+)
+const TitleTemplate = lazy(() =>
+  import('../components/TitleTemplate').then((m) => ({ default: m.TitleTemplate })),
+)
+const PresentationMode = lazy(() =>
+  import('../components/PresentationMode').then((m) => ({ default: m.PresentationMode })),
+)
+const PasteFullscreen = lazy(() =>
+  import('../components/PasteFullscreen').then((m) => ({ default: m.PasteFullscreen })),
 )
 
 // ─── Pending save ───────────────────────────────────────────
@@ -91,6 +101,8 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const [authLoading, setAuthLoading] = useState(false)
+  const [showPresentation, setShowPresentation] = useState(false)
+  const [showPasteFullscreen, setShowPasteFullscreen] = useState(false)
 
   const {
     title, text, destination, saving, savedClip, isDuplicate, saveError, canSave,
@@ -337,10 +349,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
                 <span className="w-2 h-2 rounded-full bg-blue-500" aria-hidden="true" />
                 Conexão segura com Google OAuth
               </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                <span className="w-2 h-2 rounded-full bg-purple-500" aria-hidden="true" />
-                Mais de 10.000 textos salvos
-              </div>
+              <SaveCounter />
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
                 <span className="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true" />
                 Não armazenamos seu conteúdo
@@ -378,17 +387,22 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
           {showForm && (
             <Suspense fallback={<div className="h-12 animate-pulse bg-gray-200 dark:bg-gray-800 rounded-xl" />}>
               <div>
-                <label htmlFor="paste-title" className="sr-only">Título</label>
-                <input
-                  id="paste-title"
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Título (opcional)"
-                  className="w-full px-5 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 dark:focus:border-violet-400 transition-all duration-300 text-base shadow-sm"
-                />
+                <div className="flex items-center gap-2">
+                  <label htmlFor="paste-title" className="sr-only">Título</label>
+                  <input
+                    id="paste-title"
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Título (opcional)"
+                    className="flex-1 px-5 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 dark:focus:border-violet-400 transition-all duration-300 text-base shadow-sm"
+                  />
+                  <Suspense fallback={null}>
+                    <TitleTemplate text={text} onTitleChange={setTitle} />
+                  </Suspense>
+                </div>
               </div>
-              <TextBox text={text} onTextChange={setText} autoFocus={shouldAutoFocus} />
+              <TextBox text={text} onTextChange={setText} autoFocus={shouldAutoFocus} onOpenFullscreen={() => setShowPasteFullscreen(true)} />
 
               {/* Destinos — cards distribuídos, sem cobrir o botão principal */}
               <DestinationSelector selected={destination} onChange={setDestination} />
@@ -432,6 +446,22 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
                       <QRCode text={text} title={title} />
                     </div>
                   </details>
+                </div>
+              )}
+
+              {/* Modo apresentação */}
+              {text?.trim() && (
+                <div className="flex justify-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowPresentation(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500 hover:text-violet-600 dark:hover:text-violet-400 hover:border-violet-300 dark:hover:border-violet-600 transition-all duration-200 cursor-pointer"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Modo apresentação
+                  </button>
                 </div>
               )}
             </Suspense>
@@ -589,7 +619,83 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
         loading={loggingOut}
       />
 
-      {/* ─── Testimonials ─────────────────────────────── */}
+      {/* ─── Guias (acima dos depoimentos) ─────────────── */}
+      <section className="max-w-4xl mx-auto px-4 pb-16" aria-labelledby="guides-title">
+        <h2 id="guides-title" className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
+          Guias para você começar
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-10 max-w-sm mx-auto">
+          Aprenda a usar o Pasty em poucos minutos
+        </p>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Link
+            to="/guia"
+            className="group p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-lg hover:border-violet-300 dark:hover:border-violet-700 transition-all duration-300"
+          >
+            <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+              <svg className="w-5 h-5 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+              Guia completo de uso
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+              Passo a passo para colar, organizar e acessar seus textos em qualquer dispositivo.
+            </p>
+          </Link>
+          <Link
+            to="/send-text-to-pc"
+            className="group p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-lg hover:border-violet-300 dark:hover:border-violet-700 transition-all duration-300"
+          >
+            <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+              <svg className="w-5 h-5 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+              Enviar texto do celular para o PC
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+              Transfira textos entre dispositivos em segundos, sem cabos ou apps.
+            </p>
+          </Link>
+          <Link
+            to="/save-text-online"
+            className="group p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-lg hover:border-violet-300 dark:hover:border-violet-700 transition-all duration-300"
+          >
+            <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+              <svg className="w-5 h-5 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+              Salvar texto online grátis
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+              Salve no Google Docs, Google Drive ou Gmail — rápido, seguro e sem cartão.
+            </p>
+          </Link>
+          <Link
+            to="/colar-texto-online"
+            className="group p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-lg hover:border-violet-300 dark:hover:border-violet-700 transition-all duration-300"
+          >
+            <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+              <svg className="w-5 h-5 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+              Colar texto online
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+              Formate, limpe e organize seu texto com as ferramentas gratuitas do Pasty.
+            </p>
+          </Link>
+        </div>
+      </section>
+
+      {/* ─── Testimonials (carrossel) ───────────────────── */}
       <section className="max-w-4xl mx-auto px-4 pb-16" aria-labelledby="testimonials-title">
         <h2 id="testimonials-title" className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
           O que os usuários dizem
@@ -597,37 +703,30 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-10 max-w-sm mx-auto">
           Milhares de pessoas já transformaram sua rotina com o Pasty
         </p>
-        <div className="space-y-4">
-          <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
-            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-              "Antes gastava 5 minutos por dia enviando textos do celular para o PC. Agora é 10 segundos. O Pasty salvou horas da minha semana."
-            </p>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-xs font-bold text-white">M</div>
-              <div className="text-left">
-                <span className="text-sm font-medium text-gray-900 dark:text-white">Marcos Silva</span>
-                <span className="text-xs text-gray-400 dark:text-gray-500">Engenheiro de Software</span>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
-            <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-              "Uso o Pasty todos os dias para mandar artigos do celular para o Google Docs. Simples, rápido e confiável."
-            </p>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-xs font-bold text-white">A</div>
-              <div className="text-left">
-                <span className="text-sm font-medium text-gray-900 dark:text-white">Ana Costa</span>
-                <span className="text-xs text-gray-400 dark:text-gray-500">Designer UX</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TestimonialsCarousel />
       </section>
 
       <AdBanner />
 
       <Footer />
+
+      {/* ─── Modo apresentação ─────────────────────────── */}
+      {showPresentation && text?.trim() && (
+        <Suspense fallback={null}>
+          <PresentationMode text={text} title={title} onClose={() => setShowPresentation(false)} />
+        </Suspense>
+      )}
+
+      {/* ─── Modo colagem em tela cheia ─────────────────── */}
+      {showPasteFullscreen && (
+        <Suspense fallback={null}>
+          <PasteFullscreen
+            text={text}
+            onTextChange={setText}
+            onClose={() => setShowPasteFullscreen(false)}
+          />
+        </Suspense>
+      )}
     </div>
   )
 }

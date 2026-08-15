@@ -160,4 +160,10 @@ export async function getHistory(
   return data
 }
 
+/** Get public site stats (social proof counter) */
+export async function getSiteStats(): Promise<{ totalSaves: number; totalUsers: number | null }> {
+  const { data } = await api.get<{ totalSaves: number; totalUsers: number | null }>('/stats')
+  return data
+}
+
 export default api

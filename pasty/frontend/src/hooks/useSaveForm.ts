@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { saveText } from '../api'
 import type { Clip, Destination } from '../types'
+import { detectTitleFromText } from '../utils/title'
 
 const DRAFT_KEY = 'pasty_draft'
 const AUTOSAVE_DELAY = 2000
@@ -100,13 +101,41 @@ export function useSaveForm(
 
   // ─── Setters ─────────────────────────────────────────────────
 
+  const titleTouchedRef = useRef(false)
+  const autoFilledRef = useRef(false)
+
   const setTitle = useCallback((title: string) => {
+    titleTouchedRef.current = true
+    autoFilledRef.current = true
     setState((prev) => ({ ...prev, title }))
   }, [])
 
   const setText = useCallback((text: string) => {
     setState((prev) => ({ ...prev, text }))
   }, [])
+
+  /**
+   * Auto-título: preenche automaticamente apenas quando o campo de
+   * título está vazio e o usuário cola um texto novo. Depois disso,
+   * edições no texto NÃO alteram o título (o título é opcional).
+   */
+  const autoFillTitle = useCallback((newText: string) => {
+    if (titleTouchedRef.current || autoFilledRef.current) return
+    const detected = detectTitleFromText(newText)
+    if (detected) {
+      autoFilledRef.current = true
+      setState((prev) => {
+        if (prev.title?.trim()) return prev
+        return { ...prev, title: detected }
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    if (state.text?.trim()) {
+      autoFillTitle(state.text)
+    }
+  }, [state.text, autoFillTitle])
 
   const setDestination = useCallback((destination: Destination) => {
     setState((prev) => ({ ...prev, destination }))
@@ -212,5 +241,6 @@ export function useSaveForm(
     canSave,
     hasDraft: !!localStorage.getItem(DRAFT_KEY),
     autoSaveTime,
+    autoFillTitle,
   }
 }

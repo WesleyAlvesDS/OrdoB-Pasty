@@ -104,21 +104,21 @@ Deploy:     Frontend → Vercel | Backend → ValueHost (DirectAdmin + PM2)
 
 ### Features do Produto (Semana 2-4)
 
-1. **Auto-título inteligente** — Detecta título do texto colado (regex, primeira linha, etc.)
-2. **Formato de saída no Docs** — Checkbox: "Criar DOCX formatado com título/negrito"
-3. **Templates de título personalizáveis** — `{{date}}`, `{{first_words}}`, `{{timestamp}}`
-4. **Tema claro/escuro persistente** — Salva preferência no localStorage
-5. **Atalho de teclado: Ctrl+Enter → salvar** — Já parcialmente implementado
-6. **Modo "apresentação"** — Oculta UI, mostra texto em tela cheia
-7. **Contador de caracteres/palavras/tempo de leitura** — Já tem TextStats, mas integrar mais prominentemente
-8. **Exportar como Markdown/Markdown no Docs** — Formato simples para blogs
+1. **Auto-título inteligente** — ✅ Implementado (`utils/title.ts` + integração no `useSaveForm`)
+2. **Formato de saída no Docs** — ⏳ Pendente (requer mudança no serviço Google Docs)
+3. **Templates de título personalizáveis** — ✅ Implementado (`TitleTemplate.tsx` com `{{date}}`, `{{first_words}}`, `{{timestamp}}`)
+4. **Tema claro/escuro persistente** — ✅ Já existia (`ThemeToggle.tsx` com localStorage)
+5. **Atalho de teclado: Ctrl+Enter → salvar** — ✅ Já existia (`useSaveForm.ts`)
+6. **Modo "apresentação"** — ✅ Implementado (`PresentationMode.tsx`, Esc para sair, +/- para fonte)
+7. **Contador de caracteres/palavras/tempo de leitura** — ✅ Já existia (`TextStats.tsx`)
+8. **Exportar como Markdown/Markdown no Docs** — ✅ Parcial (`.md` download no `TextExport.tsx`)
 
 ### Features de Tráfego (Semana 3-4)
 
-9. **Compartilhar link único** — `?share=<base64>` já existe, mas pode ter landing page de destino
-10. **Deep link para app** — Se o app mobile existir, link abre o app diretamente
-11. **Bookmarklet** — Script JS para colar texto selecionado com 1 clique
-12. **Widget de contador** — "X textos salvos hoje" — social proof dinâmico
+9. **Compartilhar link único** — ✅ Já existia (`TextExport.tsx` com `#share=`)
+10. **Deep link para app** — ⏳ Aguarda app mobile
+11. **Bookmarklet** — ✅ Implementado (`/bookmarklet` + `utils/bookmarklet.ts`)
+12. **Widget de contador** — ✅ Implementado (`SaveCounter.tsx` + endpoint público `/api/stats`)
 
 ---
 
@@ -221,6 +221,26 @@ Mês 12:        Integração Notion, Dropbox, API pública
 | Posição média no Google | ~10+ | <5 | TOP 3 |
 | AdSense RPM | R$0 (sem ads) | R$5 | R$10+ |
 | Usuários ativos/mês | ~100 | 1.000 | 5.000 |
+
+---
+
+## 🎨 Logos e Imagens (banco_img)
+
+Fontes oficiais em `C:\Users\prowe\Documents\projetos_git\banco_img`:
+
+| Projeto | Símbolo | Logo com fundo | Imagens |
+|---------|---------|----------------|---------|
+| **ordob** | `ordob/logoo.svg` (500x500 — vazio, sem paths) | — | `ordob/1-8.avif` (texturas pequenas) |
+| **pasty** | `pasty/logop.svg` (169x161, roxo `#7A24DD`) | — | `pasty/pasty1-3.avif` |
+| **Flux** | `Flux/logof.svg` (500x500, preto+verde `#07F5A7`) | `Flux/logobg.svg` (363x115) | — |
+| **libryno** | `libryno/logol.svg` (323x325, cinza) | `libryno/logobg.svg` (668x126) | — |
+
+### Ações de limpeza (ordob-frontend)
+
+- ❌ Excluídas as cópias não usadas: `public/images/ordob/*-orange.svg`, `public/images/pasty/logop-orange.svg` e as avif não referenciadas (`3/5/6/8.avif`, `pasty1-3.avif`).
+- ✅ Mantidas apenas as avif usadas como `backgroundImage` nas páginas produto: `ordob/1.avif`, `2.avif`, `4.avif`, `7.avif`.
+- 🔴 Pendente: `logoo.svg` da OrdoB está vazio — precisa ser recriado (núcleo redondo + "b") antes de aplicar como logo.
+- 🔄 Em andamento: aplicar as logos reais nos 5 projetos (Pasty Header "P" → `logop.svg`; Flux Sidebar/Login shield → `logof.svg`; Libryno navbar 📚 → `logol.svg`; OrdoB navbar → símbolo recriado), sempre como background/image-cover para evitar cantos quadrados.
 
 ---
 

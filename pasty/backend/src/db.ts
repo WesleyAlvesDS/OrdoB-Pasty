@@ -386,3 +386,15 @@ export async function invalidateSession(token: string): Promise<void> {
 export async function invalidateAllUserSessions(userId: number): Promise<void> {
   await pool.query('UPDATE sessions SET active = 0 WHERE user_id = ?', [userId])
 }
+
+// ─── Stats Queries ─────────────────────────────────────
+
+/**
+ * Total global de clips salvos (para social proof no frontend).
+ */
+export async function countAllClips(): Promise<number> {
+  const [rows] = await pool.query<mysql.RowDataPacket[]>(
+    'SELECT COUNT(*) as count FROM clips',
+  )
+  return (rows[0] as Record<string, unknown>).count as number
+}

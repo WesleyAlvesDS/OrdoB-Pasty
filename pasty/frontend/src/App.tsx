@@ -33,6 +33,9 @@ const Guia = lazy(() =>
 const ColarTextoOnline = lazy(() =>
   import('./pages/ColarTextoOnline').then((m) => ({ default: m.ColarTextoOnline })),
 )
+const BookmarkletPage = lazy(() =>
+  import('./pages/BookmarkletPage').then((m) => ({ default: m.BookmarkletPage })),
+)
 
 // ─── Loading fallback ───────────────────────────────────────
 
@@ -176,6 +179,14 @@ function App() {
             element={
               <Suspense fallback={<PageLoading />}>
                 <ColarTextoOnline />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/bookmarklet"
+            element={
+              <Suspense fallback={<PageLoading />}>
+                <BookmarkletPage />
               </Suspense>
             }
           />

@@ -30,12 +30,28 @@ describe('useSaveForm', () => {
     } as any)
 
     const { result } = renderHook(() => useSaveForm('token'))
+    act(() => result.current.setTitle('Meu título'))
     act(() => result.current.setText('conteúdo salvo'))
     await act(async () => result.current.handleSave())
 
-    expect(api.saveText).toHaveBeenCalledWith('conteúdo salvo', 'docs', 'Sem título', 'token')
+    expect(api.saveText).toHaveBeenCalledWith('conteúdo salvo', 'docs', 'Meu título', 'token')
     expect(result.current.savedClip).not.toBeNull()
     expect(result.current.text).toBe('')
+  })
+
+  it('preenche o título automaticamente na primeira colagem', async () => {
+    const { result } = renderHook(() => useSaveForm(null))
+    act(() => result.current.setText('Primeira linha do meu texto'))
+    await waitFor(() => expect(result.current.title).toBe('Primeira linha do meu texto'))
+  })
+
+  it('não altera o título ao editar o texto após o auto-fill', async () => {
+    const { result } = renderHook(() => useSaveForm(null))
+    act(() => result.current.setText('Título inicial do documento'))
+    await waitFor(() => expect(result.current.title).toBe('Título inicial do documento'))
+
+    act(() => result.current.setText('Conteúdo totalmente editado depois'))
+    await waitFor(() => expect(result.current.title).toBe('Título inicial do documento'))
   })
 
   it('mantém o texto quando for duplicado', async () => {
