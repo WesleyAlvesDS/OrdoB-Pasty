@@ -46,7 +46,7 @@ describe('auth', () => {
       expect(url).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Fcallback')
       expect(url).toContain('response_type=code')
       expect(url).toContain('access_type=offline')
-      expect(url).toContain('prompt=consent')
+      expect(url).toContain('prompt=select_account')
       expect(url).toContain('scope=')
     })
   })

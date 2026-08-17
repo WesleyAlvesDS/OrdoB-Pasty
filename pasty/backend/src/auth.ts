@@ -28,7 +28,10 @@ export function getGoogleAuthUrl(state?: string): string {
     response_type: 'code',
     scope: config.scopes.join(' '),
     access_type: 'offline',
-    prompt: 'consent',
+    // select_account: sem tela de consentimento em logins repetidos (refresh token já
+    // fica persistido e é renovado automaticamente) → usuário volta a usar o app mais rápido.
+    // NÃO usar 'consent', que força re-aprovação das permissões a cada login.
+    prompt: 'select_account',
   })
 
   if (state) {
