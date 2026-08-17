@@ -62,41 +62,50 @@ export function TestimonialsCarousel() {
     return () => clearInterval(timer)
   }, [next, paused])
 
-  const active = testimonials[index]
-
   return (
     <div
       className="relative"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* Card principal */}
-      <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
-        {/* Aspas decorativas */}
-        <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center mb-4" aria-hidden="true">
-          <svg className="w-5 h-5 text-violet-600 dark:text-violet-400" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z" />
-          </svg>
-        </div>
-        <blockquote className="text-gray-700 dark:text-gray-200 leading-relaxed text-lg">
-          <span className="text-violet-600 dark:text-violet-400 font-serif text-3xl leading-none align-top mr-1" aria-hidden="true">
-            "
-          </span>
-          {active.quote}
-          <span className="text-violet-600 dark:text-violet-400 font-serif text-3xl leading-none align-bottom ml-1" aria-hidden="true">
-            "
-          </span>
-        </blockquote>
-        <div className="mt-5 flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${active.gradient} flex items-center justify-center text-sm font-bold text-white`}>
-            {active.initial}
-          </div>
-          <div className="text-left">
-            <span className="block text-sm font-medium text-gray-900 dark:text-white">
-              {active.name}
-            </span>
-            <span className="text-xs text-gray-400 dark:text-gray-500">{active.role}</span>
-          </div>
+      {/* Trilho deslizante */}
+      <div className="overflow-hidden rounded-2xl">
+        <div
+          className="flex transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(-${index * 100}%)` }}
+        >
+          {testimonials.map((t) => (
+            <div key={t.name} className="w-full flex-shrink-0">
+              <div className="p-8 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm h-full">
+                {/* Aspas decorativas */}
+                <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-950/50 flex items-center justify-center mb-4" aria-hidden="true">
+                  <svg className="w-5 h-5 text-violet-600 dark:text-violet-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z" />
+                  </svg>
+                </div>
+                <blockquote className="text-gray-700 dark:text-gray-200 leading-relaxed text-lg">
+                  <span className="text-violet-600 dark:text-violet-400 font-serif text-3xl leading-none align-top mr-1" aria-hidden="true">
+                    "
+                  </span>
+                  {t.quote}
+                  <span className="text-violet-600 dark:text-violet-400 font-serif text-3xl leading-none align-bottom ml-1" aria-hidden="true">
+                    "
+                  </span>
+                </blockquote>
+                <div className="mt-5 flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.gradient} flex items-center justify-center text-sm font-bold text-white`}>
+                    {t.initial}
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-sm font-medium text-gray-900 dark:text-white">
+                      {t.name}
+                    </span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">{t.role}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
