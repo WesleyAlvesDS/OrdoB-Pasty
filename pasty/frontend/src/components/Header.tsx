@@ -41,9 +41,11 @@ export function Header({ user, onLogout, onLogin, authLoading }: HeaderProps) {
         {/* ─── Logo + OrdoB ──────────────────────────────── */}
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0" aria-label="Pasty - Página inicial">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-sm group-hover:shadow-lg group-hover:shadow-violet-300/40 dark:group-hover:shadow-violet-950/50 transition-all duration-300 group-hover:scale-110">
-              P
-            </div>
+            <div
+              className="w-8 h-8 rounded-lg shadow-sm group-hover:shadow-lg group-hover:shadow-violet-300/40 dark:group-hover:shadow-violet-950/50 transition-all duration-300 group-hover:scale-110"
+              style={{ backgroundImage: 'url(/logo.svg)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+              aria-hidden="true"
+            />
             <span className="font-semibold text-gray-900 dark:text-white text-lg tracking-tight">
               Pasty
             </span>

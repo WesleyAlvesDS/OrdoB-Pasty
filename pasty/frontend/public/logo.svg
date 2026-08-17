@@ -1,13 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="140" height="40" viewBox="0 0 140 40" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 169 161" fill="none">
   <defs>
-    <linearGradient id="logoSvgGrad" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="pastyGrad" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#8b5cf6"/>
-      <stop offset="100%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#7A24DD"/>
     </linearGradient>
   </defs>
-  <!-- Icon: rounded square with P -->
-  <rect width="40" height="40" rx="10" fill="url(#logoSvgGrad)"/>
-  <path d="M14 31V9h12c6 0 10 2.5 10 7s-4 7-10 7h-6v8h-6z" fill="white"/>
-  <!-- Text: Pasty (using system-ui to avoid font dependency issues) -->
-  <text x="50" y="27" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" fill="#111827" letter-spacing="-0.5">Pasty</text>
+  <g transform="translate(0,161) scale(0.1,-0.1)" fill="url(#pastyGrad)">
+    <path d="M0 805 l0 -805 845 0 845 0 0 805 0 805 -845 0 -845 0 0 -805z m1406 563 l29 -33 -32 29 c-18 17 -33 31 -33 33 0 8 8 1 36 -29z m-351 -173 c72 -35 131 -104 154 -180 25 -80 26 -130 5 -210 -45 -176 -211 -305 -390 -305 l-55 0 3 73 3 72 65 5 c75 6 115 25 157 74 109 123 37 328 -124 352 -65 10 -120 -10 -168 -60 -61 -63 -65 -86 -65 -410 0 -193 -3 -286 -10 -286 -22 0 -68 30 -94 60 l-26 32 0 334 c0 358 2 376 51 421 56 51 71 54 269 51 160 -3 190 -6 225 -23z m-176 -260 c16 -8 34 -28 41 -45 11 -27 11 -37 -3 -66 -41 -86 -157 -60 -157 35 0 32 6 44 31 65 35 30 49 32 88 11z"/>
+  </g>
 </svg>
