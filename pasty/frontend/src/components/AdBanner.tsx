@@ -31,7 +31,17 @@ export function AdBanner() {
   }
 
   return (
-    <div className="flex justify-center px-2 my-8" role="complementary" aria-label="Publicidade">
+    <div
+      className="flex flex-col items-center px-2 my-8"
+      role="complementary"
+      aria-label="Publicidade"
+    >
+      <p
+        className="mb-2 text-[10px] font-medium uppercase tracking-[0.15em] text-gray-400"
+        data-testid="ad-disclosure"
+      >
+        Publicidade
+      </p>
       <div
         id={AD_CONTAINER_ID}
         ref={containerRef}
