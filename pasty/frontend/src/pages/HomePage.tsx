@@ -52,6 +52,9 @@ const PresentationMode = lazy(() =>
 const PasteFullscreen = lazy(() =>
   import('../components/PasteFullscreen').then((m) => ({ default: m.PasteFullscreen })),
 )
+const TestimonialsCarousel = lazy(() =>
+  import('../components/TestimonialsCarousel').then((m) => ({ default: m.TestimonialsCarousel })),
+)
 
 // ─── Pending save ───────────────────────────────────────────
 
