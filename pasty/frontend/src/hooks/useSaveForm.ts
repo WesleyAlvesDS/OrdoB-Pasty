@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { saveText } from '../api'
 import type { Clip, Destination } from '../types'
 import { detectTitleFromText } from '../utils/title'
+import { trackEvent, AnalyticsEvent } from '../utils/analytics'
 
 const DRAFT_KEY = 'pasty_draft'
 const AUTOSAVE_DELAY = 2000
@@ -139,6 +140,7 @@ export function useSaveForm(
 
   const setDestination = useCallback((destination: Destination) => {
     setState((prev) => ({ ...prev, destination }))
+    trackEvent(AnalyticsEvent.selectDestination, { destination })
   }, [])
 
   // ─── Handle Save ─────────────────────────────────────────
@@ -154,6 +156,7 @@ export function useSaveForm(
     if (!trimmedText) return
 
     setState((prev) => ({ ...prev, saving: true, saveError: null, savedClip: null, isDuplicate: false }))
+    trackEvent(AnalyticsEvent.saveAttempt, { destination: state.destination })
 
     try {
       const res = await saveText(
@@ -171,6 +174,11 @@ export function useSaveForm(
         text: res.duplicate ? prev.text : '',
         title: res.duplicate ? prev.title : '',
       }))
+
+      trackEvent(
+        res.duplicate ? AnalyticsEvent.saveDuplicate : AnalyticsEvent.saveSuccess,
+        { destination: state.destination },
+      )
 
       if (!res.duplicate) {
         clearDraft()
@@ -199,6 +207,7 @@ export function useSaveForm(
       }
 
       setState((prev) => ({ ...prev, saving: false, saveError: message }))
+      trackEvent(AnalyticsEvent.saveError, { destination: state.destination, error: message })
     }
   }, [token, state.text, state.title, state.destination, clearDraft, onSaved])
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { User } from '../types'
 import { getMe, exchangeCode } from '../api'
+import { trackEvent, AnalyticsEvent } from '../utils/analytics'
 
 const TOKEN_KEY = 'utc_token'
 const USER_KEY = 'utc_user'
@@ -46,6 +47,7 @@ export function useAuth() {
     localStorage.setItem(USER_KEY, JSON.stringify(response.user))
     setToken(response.token)
     setUser(response.user)
+    trackEvent(AnalyticsEvent.loginSuccess)
     return response.user
   }, [])
 
@@ -55,6 +57,7 @@ export function useAuth() {
     localStorage.removeItem(USER_KEY)
     setToken(null)
     setUser(null)
+    trackEvent(AnalyticsEvent.logout)
   }, [])
 
   return {
