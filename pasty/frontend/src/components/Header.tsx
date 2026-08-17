@@ -38,9 +38,15 @@ export function Header({ user, onLogout, onLogin, authLoading }: HeaderProps) {
       </a>
 
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* ─── Logo + OrdoB ──────────────────────────────── */}
+        {/* ─── Logo ──────────────────────────────────────── */}
         <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-2.5 group flex-shrink-0" aria-label="Pasty - Página inicial">
+          <a
+            href="https://ordob.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2.5 group flex-shrink-0"
+            aria-label="Pasty - Abrir o site da OrdoB"
+          >
             <div
               className="w-8 h-8 rounded-lg shadow-sm group-hover:shadow-lg group-hover:shadow-violet-300/40 dark:group-hover:shadow-violet-950/50 transition-all duration-300 group-hover:scale-110"
               style={{ backgroundImage: 'url(/logo.svg)', backgroundSize: 'cover', backgroundPosition: 'center' }}
@@ -49,19 +55,6 @@ export function Header({ user, onLogout, onLogin, authLoading }: HeaderProps) {
             <span className="font-semibold text-gray-900 dark:text-white text-lg tracking-tight">
               Pasty
             </span>
-          </Link>
-
-          {/* OrdoB Matriz Link */}
-          <a
-            href="https://ordob.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-full border border-gray-200 dark:border-gray-800 text-[10px] text-gray-400 dark:text-gray-500 hover:text-[#FE5416] hover:border-[#FE5416]/30 transition-all duration-200"
-          >
-            <span className="flex h-3 w-3 items-center justify-center rounded-full bg-[#FE5416]">
-              <span className="h-1 w-1 rounded-full bg-white" />
-            </span>
-            OrdoB™
           </a>
         </div>
 
@@ -202,21 +195,6 @@ export function Header({ user, onLogout, onLogin, authLoading }: HeaderProps) {
                 {authLoading ? 'Entrando...' : 'Entrar com Google'}
               </button>
             )}
-
-            {/* OrdoB Link */}
-            <a
-              href="https://ordob.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-[#FE5416] hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
-            >
-              <span className="inline-flex items-center gap-2">
-                <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#FE5416]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                </span>
-                OrdoB™ Matriz
-              </span>
-            </a>
           </div>
         </nav>
       )}
