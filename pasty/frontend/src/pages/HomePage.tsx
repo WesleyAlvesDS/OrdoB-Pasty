@@ -398,7 +398,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Título (opcional)"
-                    className="flex-1 px-5 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 dark:focus:border-violet-400 transition-all duration-300 text-base shadow-sm"
+                    className="flex-1 min-w-0 px-5 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-violet-500/20 focus:border-violet-500 dark:focus:border-violet-400 transition-all duration-300 text-base shadow-sm"
                   />
                   <Suspense fallback={null}>
                     <TitleTemplate text={text} onTitleChange={setTitle} />
@@ -699,7 +699,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
       </section>
 
       {/* ─── Testimonials (carrossel) ───────────────────── */}
-      <section className="max-w-4xl mx-auto px-4 pb-16" aria-labelledby="testimonials-title">
+      <section className="w-full max-w-4xl mx-auto px-4 pb-16" aria-labelledby="testimonials-title">
         <h2 id="testimonials-title" className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
           O que os usuários dizem
         </h2>
