@@ -33,7 +33,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-xs">
-              Cole qualquer texto e salve diretamente no Google Docs, Google Drive ou Gmail.
+              Cole qualquer texto e salve diretamente no Google Docs, Google Drive ou Gmail (como rascunho de e-mail).
               Acesse de qualquer dispositivo.
             </p>
             {/* Badges */}

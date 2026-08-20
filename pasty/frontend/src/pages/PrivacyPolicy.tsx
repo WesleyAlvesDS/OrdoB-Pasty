@@ -17,7 +17,7 @@ const sections = [
     title: '2. Como usamos suas informações',
     content: `Seus dados são utilizados exclusivamente para:
 • Autenticar sua conta e permitir o uso do serviço
-• Processar e salvar seus textos nos serviços Google que você escolher (Docs, Drive ou Gmail)
+• Processar e salvar seus textos nos serviços Google que você escolher (Docs, Drive ou Gmail como rascunho)
 • Melhorar a experiência do usuário com base em dados anônimos de uso
 • NUNCA vendemos, alugamos ou compartilhamos seus dados com terceiros`,
   },

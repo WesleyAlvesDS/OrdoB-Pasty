@@ -261,15 +261,15 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
             [
               { name: 'Acesse pasty.ordob.com e faça login com Google', url: 'https://pasty.ordob.com/' },
               { name: 'Cole o texto que deseja salvar', url: 'https://pasty.ordob.com/' },
-              { name: 'Escolha Google Docs, Drive ou Gmail e salve', url: 'https://pasty.ordob.com/' },
+              { name: 'Escolha Google Docs, Drive ou Gmail (rascunho) e salve', url: 'https://pasty.ordob.com/' },
             ],
             'Como salvar texto online com o Pasty',
-            'Cole qualquer texto e salve instantaneamente no Google Docs, Google Drive ou Gmail em 3 passos simples.'
+            'Cole qualquer texto e salve instantaneamente no Google Docs, Google Drive ou Gmail (como rascunho) em 3 passos simples.'
           ),
           ...faqJsonLd([
             { q: 'O Pasty é grátis?', a: 'Sim! O Pasty é 100% grátis. Você só precisa de uma conta Google — sem cartão de crédito, sem trial.' },
             { q: 'Preciso instalar algum aplicativo?', a: 'Não. Funciona em qualquer navegador moderno — celular, tablet ou computador. Apenas abra o site e use.' },
-            { q: 'Onde meus textos ficam salvos?', a: 'No Google Docs, Google Drive ou Gmail — você escolhe. Nós não armazenamos o conteúdo dos seus textos no Pasty.' },
+            { q: 'Onde meus textos ficam salvos?', a: 'No Google Docs, Google Drive ou Gmail (como rascunho de e-mail) — você escolhe. Nós não armazenamos o conteúdo dos seus textos no Pasty.' },
           ]),
         }}
       />
@@ -326,7 +326,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
                 </span>
               </h1>
               <p className="mt-4 text-base sm:text-lg text-gray-500 dark:text-gray-400 max-w-lg mx-auto leading-relaxed">
-                Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail.
+                Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail (como rascunho de e-mail).
                 Rápido, seguro e 100% grátis.
               </p>
               <button
@@ -676,7 +676,7 @@ export function HomePage({ isAuthenticated, user, token, onCallback, onLogout }:
               Salvar texto online grátis
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-              Salve no Google Docs, Google Drive ou Gmail — rápido, seguro e sem cartão.
+              Salve no Google Docs, Google Drive ou Gmail (rascunho) — rápido, seguro e sem cartão.
             </p>
           </Link>
           <Link

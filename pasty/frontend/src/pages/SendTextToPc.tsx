@@ -21,7 +21,7 @@ const steps = [
   {
     step: '03',
     title: 'Escolha o destino',
-    desc: 'Selecione Google Docs, Drive ou Gmail. Pronto — o texto estará no seu PC instantaneamente.',
+    desc: 'Selecione Google Docs, Drive ou Gmail (rascunho). Pronto — o texto estará no seu PC instantaneamente.',
     gradient: 'from-pink-500 to-rose-600',
   },
 ]
@@ -30,12 +30,12 @@ const benefits = [
   { icon: '⚡', title: 'Instantâneo', desc: 'Salve textos em segundos. Sem apps, sem cabos, sem complicação.' },
   { icon: '🔒', title: 'Seguro', desc: 'Seus dados trafegam com criptografia. Apenas você tem acesso.' },
   { icon: '🌐', title: 'Qualquer dispositivo', desc: 'Funciona no celular, tablet, PC — qualquer navegador moderno.' },
-  { icon: '📁', title: 'Múltiplos destinos', desc: 'Google Docs, Drive e Gmail. Escolha onde quer salvar.' },
+  { icon: '📁', title: 'Múltiplos destinos', desc: 'Google Docs, Drive e Gmail (rascunho). Escolha onde quer salvar.' },
 ]
 
 const faqs = [
   { q: 'Preciso instalar algum aplicativo no celular?', a: 'Não. Funciona em qualquer navegador moderno — celular, tablet ou PC. Apenas abra o site.' },
-  { q: 'O texto fica salvo no meu PC?', a: 'Sim! O texto é salvo no seu Google Docs, Drive ou Gmail. Acesse de qualquer dispositivo.' },
+  { q: 'O texto fica salvo no meu PC?', a: 'Sim! O texto é salvo no seu Google Docs, Drive ou Gmail (como rascunho). Acesse de qualquer dispositivo.' },
   { q: 'Preciso de conta Google?', a: 'Sim, usamos OAuth 2.0 do Google. É rápido, seguro e você controla as permissões.' },
 ]
 
@@ -53,7 +53,7 @@ export function SendTextToPc() {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <SEO
         title="Como enviar texto do celular para o PC grátis"
-        description="Envie texto do celular para o PC em 1 minuto, sem e-mail nem WhatsApp. Cole no Pasty e salve direto no Google Docs, Drive ou Gmail. Grátis."
+        description="Envie texto do celular para o PC em 1 minuto, sem e-mail nem WhatsApp. Cole no Pasty e salve direto no Google Docs, Drive ou Gmail (rascunho). Grátis."
         canonical="https://pasty.ordob.com/send-text-to-pc"
         ogType="website"
          jsonLd={{ ...pageJsonLd, ...faqJsonLd(faqs) }}

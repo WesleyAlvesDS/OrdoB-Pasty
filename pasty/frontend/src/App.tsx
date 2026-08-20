@@ -87,7 +87,7 @@ function App() {
       <ToastProvider>
         <SEO
           title="Pasty — Cole, salve e acesse de qualquer lugar"
-          description="Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail. Rápido, seguro e 100% grátis."
+          description="Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail (como rascunho de e-mail). Rápido, seguro e 100% grátis."
           canonical="https://pasty.ordob.com/"
           jsonLd={orgJsonLd}
         />

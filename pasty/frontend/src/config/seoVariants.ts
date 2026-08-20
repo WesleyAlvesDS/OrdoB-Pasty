@@ -25,12 +25,12 @@ export const seoVariants: ABTest = {
     variantA: {
       title: 'Pasty — Cole, salve e acesse de qualquer lugar',
       description:
-        'Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail. Rápido, seguro e 100% grátis.',
+        'Cole qualquer texto no navegador e salve instantaneamente no Google Docs, Google Drive ou Gmail (como rascunho). Rápido, seguro e 100% grátis.',
     },
     variantB: {
-      title: 'Colar texto online grátis | Salve no Google Docs, Drive ou Gmail',
+      title: 'Colar texto online grátis | Salve no Google Docs, Drive ou Gmail (rascunho)',
       description:
-        'Cole texto, salve online em 1 clique e acesse de qualquer dispositivo. Direto para Google Docs, Drive ou Gmail. 100% grátis, sem instalar nada.',
+        'Cole texto, salve online em 1 clique e acesse de qualquer dispositivo. Direto para Google Docs, Drive ou Gmail (rascunho). 100% grátis, sem instalar nada.',
     },
   },
 }

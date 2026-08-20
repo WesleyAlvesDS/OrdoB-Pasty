@@ -22,7 +22,7 @@ export function BookmarkletPage() {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <SEO
         title="Bookmarklet Pasty | Cole texto selecionado com 1 clique"
-        description="Instale o bookmarklet do Pasty e cole qualquer texto selecionado na web diretamente no Google Docs, Drive ou Gmail com um clique."
+        description="Instale o bookmarklet do Pasty e cole qualquer texto selecionado na web diretamente no Google Docs, Drive ou Gmail (rascunho) com um clique."
         canonical="https://pasty.ordob.com/bookmarklet"
         ogType="website"
         jsonLd={pageJsonLd}
@@ -70,7 +70,7 @@ export function BookmarkletPage() {
               'Selecione um texto em qualquer página da web',
               'Clique no favorito "Colar texto no Pasty"',
               'O Pasty abre com o texto já preenchido',
-              'Escolha Google Docs, Drive ou Gmail e salve',
+              'Escolha Google Docs, Drive ou Gmail (rascunho) e salve',
             ].map((step, i) => (
               <li key={i} className="flex items-center gap-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
                 <span className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-sm font-bold flex items-center justify-center">

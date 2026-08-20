@@ -12,7 +12,7 @@ const sections = [
   {
     title: '2. Descrição do Serviço',
     content: `O Pasty é uma ferramenta web que permite aos usuários:
-• Colar e salvar textos diretamente no Google Docs, Google Drive ou Gmail
+• Colar e salvar textos diretamente no Google Docs, Google Drive ou Gmail (como rascunho de e-mail)
 • Gerenciar e visualizar o histórico de textos salvos
 • Acessar o serviço de qualquer dispositivo com navegador moderno
 

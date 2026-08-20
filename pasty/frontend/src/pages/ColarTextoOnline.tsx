@@ -8,7 +8,7 @@ import { AdBanner } from '../components/AdBanner'
 const faqs = [
   {
     q: 'O que é colar texto online?',
-    a: 'É a ação de copiar um texto e salvá-lo na internet para acessá-lo depois de qualquer dispositivo. Com o Pasty, você cola o texto no site e ele é enviado direto para seu Google Docs, Drive ou Gmail.',
+    a: 'É a ação de copiar um texto e salvá-lo na internet para acessá-lo depois de qualquer dispositivo. Com o Pasty, você cola o texto no site e ele é enviado direto para seu Google Docs, Drive ou Gmail (como rascunho de e-mail).',
   },
   {
     q: 'Posso colar textos longos?',
@@ -16,7 +16,7 @@ const faqs = [
   },
   {
     q: 'Meus textos colados são públicos?',
-    a: 'Não. Seus textos são salvos apenas na sua conta Google (Docs, Drive ou Gmail). O Pasty não armazena nem publica seu conteúdo.',
+    a: 'Não. Seus textos são salvos apenas na sua conta Google (Docs, Drive ou Gmail, como rascunho). O Pasty não armazena nem publica seu conteúdo.',
   },
   {
     q: 'Funciona no celular?',
@@ -38,7 +38,7 @@ export function ColarTextoOnline() {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <SEO
         title="Colar texto online grátis | Pasty"
-        description="Cole texto online e salve em segundos no Google Docs, Drive ou Gmail. Sem cadastro complicado, sem instalar nada. Acesse de qualquer dispositivo. Grátis."
+        description="Cole texto online e salve em segundos no Google Docs, Drive ou Gmail (rascunho). Sem cadastro complicado, sem instalar nada. Acesse de qualquer dispositivo. Grátis."
         canonical="https://pasty.ordob.com/colar-texto-online"
         ogType="website"
         jsonLd={{ ...pageJsonLd, ...faqJsonLd(faqs) }}
@@ -54,7 +54,7 @@ export function ColarTextoOnline() {
           </h1>
           <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
             Precisa colar e guardar um texto rapidamente? O Pasty envia direto para o seu Google Docs,
-            Drive ou Gmail — sem perda, sem cadastro complicado, sem instalar nada.
+              Drive ou Gmail (rascunho) — sem perda, sem cadastro complicado, sem instalar nada.
           </p>
           <div className="mt-8">
             <Link
@@ -97,7 +97,7 @@ export function ColarTextoOnline() {
               'Acesse pasty.ordob.com no seu navegador',
               'Clique em "Entrar com Google"',
               'Cole o texto que deseja salvar',
-              'Escolha Google Docs, Drive ou Gmail',
+              'Escolha Google Docs, Drive ou Gmail (rascunho)',
               'Clique em Salvar — pronto!',
             ].map((step, i) => (
               <li key={i} className="flex items-center gap-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">

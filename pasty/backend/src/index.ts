@@ -325,6 +325,24 @@ app.post('/api/save', authMiddleware, async (c) => {
         status,
       )
     }
+    // Gmail API desativada no projeto Google Cloud do Pasty — não é falha do
+    // usuário. Retorna mensagem clara (403) em vez do JSON bruto do Google.
+    const isGmailApiDisabled =
+      message.includes('SERVICE_DISABLED') ||
+      message.includes('gmail.googleapis.com') ||
+      (message.includes('Gmail API has not been used') &&
+        message.includes('accessNotConfigured'))
+    if (isGmailApiDisabled) {
+      status = 403
+      return c.json(
+        {
+          error:
+            'Não foi possível criar o rascunho no Gmail. A API do Gmail não está ativada no projeto Google Cloud do Pasty. Contate o suporte.',
+          code: 'GMAIL_API_DISABLED',
+        },
+        status,
+      )
+    }
     if (isTokenError) status = 401
     else if (isRateLimit) status = 429
 

@@ -8,7 +8,7 @@ import { AdBanner } from '../components/AdBanner'
 const steps = [
   { icon: '🔑', title: 'Login com Google', desc: 'Use sua conta Google para entrar. Rápido e seguro — sem criar nova senha.' },
   { icon: '📝', title: 'Cole o texto', desc: 'Copie de qualquer lugar e cole no campo de texto. Funciona com qualquer conteúdo.' },
-  { icon: '💾', title: 'Escolha e salve', desc: 'Selecione Docs, Drive ou Gmail e salve instantaneamente.' },
+  { icon: '💾', title: 'Escolha e salve', desc: 'Selecione Docs, Drive ou Gmail (rascunho) e salve instantaneamente.' },
 ]
 
 const comparisons = [
@@ -23,7 +23,7 @@ const comparisons = [
 const faqs = [
   { q: 'É realmente grátis?', a: 'Sim! O Pasty é 100% grátis durante o MVP. Você só precisa de uma conta Google — sem cartão de crédito, sem trial.' },
   { q: 'Preciso instalar algum aplicativo?', a: 'Não. Funciona em qualquer navegador moderno — celular, tablet ou computador. Apenas abra o site e use.' },
-  { q: 'Onde meus textos ficam salvos?', a: 'No Google Docs, Google Drive ou Gmail — você escolhe. Nós não armazenamos o conteúdo dos seus textos no Pasty.' },
+  { q: 'Onde meus textos ficam salvos?', a: 'No Google Docs, Google Drive ou Gmail (como rascunho) — você escolhe. Nós não armazenamos o conteúdo dos seus textos no Pasty.' },
   { q: 'Funciona no celular?', a: 'Sim! O site é totalmente responsivo e funciona perfeitamente no navegador do celular, tablet ou PC.' },
   { q: 'Posso salvar textos grandes?', a: 'Sim, não há limite de tamanho. Mas lembre-se de que cada serviço Google tem suas próprias limitações.' },
 ]
@@ -82,7 +82,7 @@ export function SaveTextOnline() {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <SEO
         title="Salvar texto online grátis | Cole e acesse de qualquer lugar"
-        description="Salve texto online em segundos e acesse de qualquer dispositivo. Cole no Pasty, escolha Google Docs, Drive ou Gmail e pronto. 100% grátis."
+        description="Salve texto online em segundos e acesse de qualquer dispositivo. Cole no Pasty, escolha Google Docs, Drive ou Gmail (rascunho) e pronto. 100% grátis."
         canonical="https://pasty.ordob.com/save-text-online"
         ogType="website"
         jsonLd={{ ...faqJsonLd(faqs), ...pageJsonLd }}
@@ -122,7 +122,7 @@ export function SaveTextOnline() {
             >
               Precisa salvar um texto rapidamente e acessar de qualquer lugar?
               O Pasty deixa você colar, salvar e acessar seus textos
-              no Google Drive, Docs ou Gmail em segundos.
+              no Google Drive, Docs ou Gmail (rascunho) em segundos.
             </p>
 
             <div

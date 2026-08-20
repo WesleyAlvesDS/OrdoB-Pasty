@@ -304,6 +304,36 @@ describe('API Routes', () => {
       expect(body.duplicate).toBe(false)
     })
 
+    it('returns 403 with GMAIL_API_DISABLED when Gmail API is disabled', async () => {
+      const token = await getAuthToken()
+      const { app } = await import('../index.js')
+      const { createGmailDraft } = await import('../services/gmail.js')
+
+      const gmailMock = createGmailDraft as ReturnType<typeof vi.fn>
+      gmailMock.mockRejectedValueOnce(
+        new Error(
+          'Gmail draft failed: {"error":{"code":403,"message":"Gmail API has not been used in project 886160861851 before or it is disabled.","status":"PERMISSION_DENIED","details":[{"reason":"SERVICE_DISABLED","service":"gmail.googleapis.com"}]}}',
+        ),
+      )
+
+      const res = await app.request('/api/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          text: 'Draft content',
+          destination: 'gmail',
+        }),
+      })
+
+      expect(res.status).toBe(403)
+      const body = await res.json()
+      expect(body.code).toBe('GMAIL_API_DISABLED')
+      expect(body.error).toContain('rascunho')
+    })
+
     it('returns 400 for invalid destination', async () => {
       const token = await getAuthToken()
       const { app } = await import('../index.js')

@@ -49,7 +49,7 @@ const faqs = [
   },
   {
     q: 'O Pasty armazena meus textos?',
-    a: 'Não! O Pasty apenas envia o texto para o seu Google Docs, Drive ou Gmail. O conteúdo é armazenado apenas nas suas contas Google. Nós apenas mantemos um histórico de metadados (título e data) para sua conveniência.',
+    a: 'Não! O Pasty apenas envia o texto para o seu Google Docs, Drive ou Gmail (como rascunho). O conteúdo é armazenado apenas nas suas contas Google. Nós apenas mantemos um histórico de metadados (título e data) para sua conveniência.',
   },
   {
     q: 'Posso usar o Pasty no iPhone?',
@@ -57,7 +57,7 @@ const faqs = [
   },
   {
     q: 'É possível salvar em múltiplos destinos de uma vez?',
-    a: 'Sim! Selecione Google Docs, Drive e Gmail ao mesmo tempo e o texto será salvo em todos os destinos escolhidos em um único clique.',
+    a: 'Sim! Selecione Google Docs, Drive e Gmail (rascunho) ao mesmo tempo e o texto será salvo em todos os destinos escolhidos em um único clique.',
   },
 ]
 
@@ -70,7 +70,7 @@ const pageJsonLdHowTo = {
   '@context': 'https://schema.org',
   '@type': 'HowTo',
   name: 'Como usar o Pasty — Guia completo passo a passo',
-  description: 'Aprenda a enviar textos do celular para o PC, Google Docs, Drive ou Gmail em 5 passos simples com o Pasty.',
+    description: 'Aprenda a enviar textos do celular para o PC, Google Docs, Drive ou Gmail (rascunho) em 5 passos simples com o Pasty.',
   step: steps.map((step, index) => ({
     '@type': 'HowToStep',
     position: index + 1,
@@ -89,7 +89,7 @@ export function Guia() {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <SEO
         title="Guia completo: como usar o Pasty | Enviar texto do celular para PC"
-        description="Aprenda a usar o Pasty em 5 passos simples. Envie textos do celular para Google Docs, Drive ou Gmail. Guia completo com FAQ e imagens."
+        description="Aprenda a usar o Pasty em 5 passos simples. Envie textos do celular para Google Docs, Drive ou Gmail (rascunho). Guia completo com FAQ e imagens."
         canonical="https://pasty.ordob.com/guia"
         ogType="article"
         jsonLd={{ ...pageJsonLd, ...pageJsonLdHowTo, ...faqJsonLd(faqs) }}
@@ -104,7 +104,7 @@ export function Guia() {
             Guia completo: como usar o Pasty
           </h1>
           <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
-            Aprenda a enviar textos do celular para o seu PC, Google Docs, Google Drive ou Gmail
+            Aprenda a enviar textos do celular para o seu PC, Google Docs, Google Drive ou Gmail (rascunho)
             em apenas 5 passos simples. Sem instalar nada, 100% grátis.
           </p>
         </section>
